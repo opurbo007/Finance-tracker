@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --blue:        #185FA5;
+  --blue-lt:     #E6F1FB;
+  --blue-dk:     #0C447C;
+  --green:       #639922;
+  --green-lt:    #EAF3DE;
+  --red:         #E24B4A;
+  --red-lt:      #FCEBEB;
+  --amber:       #BA7517;
+  --amber-lt:    #FAEEDA;
+  --teal:        #0F6E56;
+  --teal-lt:     #E1F5EE;
+  --purple:      #534AB7;
+  --purple-lt:   #EEEDFE;
+  --surface:     #F7F8FA;
+  --surface-2:   #EEEEF2;
+  --border:      rgba(0,0,0,0.08);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--surface);
+  color: #1a1a1a;
+  overscroll-behavior: none;
+}
+
+/* Hide scrollbars but keep scroll */
+::-webkit-scrollbar { width: 0; height: 0; }
+
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl border border-black/[0.06] shadow-sm;
+  }
+  .card-surface {
+    @apply bg-[#F7F8FA] rounded-2xl border border-black/[0.06];
+  }
+  .badge {
+    @apply text-[10px] font-medium px-2 py-0.5 rounded-full;
+  }
+  .badge-liquid  { background: var(--blue-lt);   color: var(--blue-dk); }
+  .badge-secure  { background: var(--teal-lt);   color: var(--teal); }
+  .badge-invest  { background: var(--purple-lt); color: var(--purple); }
+  .badge-cash    { background: var(--amber-lt);  color: var(--amber); }
+  .badge-debt    { background: var(--red-lt);    color: var(--red); }
+
+  .btn-primary {
+    @apply w-full py-3 rounded-xl font-medium text-white transition-all active:scale-[0.98];
+    background: var(--blue);
+  }
+  .btn-primary:hover { background: var(--blue-dk); }
+
+  .btn-secondary {
+    @apply w-full py-3 rounded-xl font-medium border border-black/10 bg-[#F7F8FA] text-gray-700 transition-all active:scale-[0.98];
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-sm outline-none transition-all;
+    font-family: 'DM Sans', system-ui;
+  }
+  .input-field:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(24,95,165,0.12);
+  }
+
+  .nav-tab {
+    @apply flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-[11px] font-medium text-gray-400 transition-all cursor-pointer select-none;
+  }
+  .nav-tab.active {
+    color: var(--blue);
+    background: var(--blue-lt);
+  }
+
+  .bottom-sheet-backdrop {
+    @apply fixed inset-0 bg-black/40 z-40 flex items-end justify-center;
+    animation: fadeInBg 0.2s ease;
+  }
+  .bottom-sheet {
+    @apply w-full max-w-lg bg-white rounded-t-3xl p-6 pb-10 z-50 overflow-y-auto;
+    max-height: 92vh;
+    animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .chip-select {
+    @apply flex flex-col items-center gap-1 p-2 rounded-xl border text-[11px] font-medium cursor-pointer transition-all select-none;
+    border-color: rgba(0,0,0,0.08);
+    background: #F7F8FA;
+    color: #6b7280;
+  }
+  .chip-select:hover { background: #EEEEF2; }
+  .chip-select.selected {
+    border-color: var(--blue);
+    background: var(--blue-lt);
+    color: var(--blue-dk);
+  }
+
+  .section-label {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-gray-400 px-1;
+  }
+}
+
+@keyframes fadeInBg { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp  {
+  from { transform: translateY(100%); opacity: 0 }
+  to   { transform: translateY(0);   opacity: 1 }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+
+.animate-fade-in { animation: fadeIn 0.25s ease both; }
+
+/* Mobile-first safe area */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
