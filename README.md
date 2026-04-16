@@ -1,130 +1,135 @@
 # 💰 Finance Tracker — Next.js App
 
-A mobile-first personal finance web app built with **Next.js 14**, **MongoDB**, and **Tailwind CSS**.
-Same great UI as the Android app — fully responsive, works beautifully on phones.
+A mobile-first personal finance PWA built with **Next.js 14 App Router**, **MongoDB**, **NextAuth.js**, and **Tailwind CSS**.
 
 ---
 
 ## ✨ Features
 
-| Screen     | What you get |
-|------------|-------------|
-| **Dashboard** | Greeting, monthly income/expense summary, budget progress bar, today's transactions |
-| **Expenses**  | All transactions grouped by date with daily net totals |
-| **Wealth**    | Net worth hero card, bank accounts, savings, FDR, Sanchay Patra, investments, debts |
-| **Analytics** | Monthly totals, daily average spend, spending by category bar chart |
+| Screen | What you get |
+|--------|-------------|
+| **Dashboard** | Greeting, monthly summary, budget bar, today's transactions |
+| **Expenses** | All transactions grouped by date with daily net totals |
+| **Wealth** | Net worth card, banks, savings, FDR, Sanchay Patra, investments, debts |
+| **Analytics** | Monthly totals, daily average, category bar chart |
 
-**Auth:** Email + password registration & login via NextAuth.js  
-**Database:** MongoDB (Atlas or self-hosted) via Mongoose  
-**Mobile-first:** Bottom nav, FAB button, bottom sheets — feels like a native app
+**PWA** — installable on iOS and Android ("Add to Home Screen")  
+**Middleware auth** — single `middleware.ts` protects all routes, no per-page redirects  
+**Fully type-safe** — zero `as any`, strict tsconfig, typed NextAuth session  
+**MongoDB** — Mongoose schemas with indexes, connection pooling  
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Install dependencies
 ```bash
-cd finance-nextjs
+# 1. Install
 npm install
-```
 
-### 2. Set up MongoDB Atlas (free)
-1. Go to [cloud.mongodb.com](https://cloud.mongodb.com) → Create free cluster
-2. **Database Access** → Add user with read/write access
-3. **Network Access** → Add `0.0.0.0/0` (allow all) or your IP
-4. **Connect** → Drivers → Copy connection string
-
-### 3. Configure environment
-```bash
+# 2. Configure
 cp .env.local.example .env.local
-```
+# → Fill in MONGODB_URI, NEXTAUTH_SECRET, NEXTAUTH_URL
 
-Edit `.env.local`:
-```env
-MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/financeapp
-NEXTAUTH_SECRET=run-openssl-rand-base64-32-and-paste-here
-NEXTAUTH_URL=http://localhost:3000
-```
-
-Generate a secret:
-```bash
-openssl rand -base64 32
-```
-
-### 4. Run
-```bash
+# 3. Dev server
 npm run dev
-# Open http://localhost:3000
+# → Open http://localhost:3000
+```
+
+### Environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `MONGODB_URI` | MongoDB connection string (Atlas or local) |
+| `NEXTAUTH_SECRET` | Random secret — `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | App URL (`http://localhost:3000` in dev) |
+
+---
+
+## 🏗 Architecture
+
+```
+finance-nextjs/
+├── middleware.ts              ← Single auth guard for all routes
+├── types/
+│   ├── index.ts              ← Transaction, WealthAccount, categories
+│   ├── next-auth.d.ts        ← Session type augmentation (no as any)
+│   └── env.d.ts              ← process.env types
+├── lib/
+│   ├── auth.ts               ← NextAuthOptions (typed)
+│   ├── get-auth-user.ts      ← getAuthUserId() helper
+│   ├── models.ts             ← Mongoose schemas
+│   ├── mongodb.ts            ← Typed global connection cache
+│   └── utils.ts              ← formatBdt, formatDate, greeting
+├── app/
+│   ├── manifest.ts           ← PWA manifest (MetadataRoute.Manifest)
+│   ├── layout.tsx            ← Root layout + full icon metadata
+│   ├── api/
+│   │   ├── auth/[...nextauth]/  ← NextAuth handler
+│   │   ├── auth/register/       ← User registration
+│   │   ├── transactions/        ← GET | POST | DELETE
+│   │   └── wealth-accounts/     ← GET | POST | DELETE | PATCH
+│   ├── auth/page.tsx         ← Login / Register
+│   ├── dashboard/            ← Dashboard screen
+│   ├── expenses/             ← All transactions screen
+│   ├── wealth/               ← Wealth overview screen
+│   └── analytics/            ← Analytics + chart screen
+├── components/
+│   ├── DataProvider.tsx      ← Global typed data context
+│   ├── AddTransactionSheet.tsx
+│   ├── AddWealthSheet.tsx    ← toBadgeType() — no unsafe cast
+│   ├── layout/AppShell.tsx   ← Bottom nav + FAB
+│   └── ui/index.tsx          ← Cards, chips, bars, spinner
+└── public/
+    ├── favicon.ico
+    └── icons/                ← 10 PNG sizes + SVG + apple-touch-icon
 ```
 
 ---
 
-## 📁 Project Structure
+## 🔒 Auth Flow (middleware)
 
 ```
-finance-nextjs/
-├── app/
-│   ├── api/
-│   │   ├── auth/[...nextauth]/  ← NextAuth handler
-│   │   ├── auth/register/       ← User registration
-│   │   ├── transactions/        ← CRUD for transactions
-│   │   └── wealth-accounts/     ← CRUD for wealth accounts
-│   ├── auth/                    ← Login / Register page
-│   ├── dashboard/               ← Dashboard page
-│   ├── expenses/                ← All transactions page
-│   ├── wealth/                  ← Wealth overview page
-│   ├── analytics/               ← Analytics & charts page
-│   ├── globals.css              ← Design tokens + Tailwind
-│   ├── layout.tsx               ← Root layout
-│   └── providers.tsx            ← Session + Data providers
-├── components/
-│   ├── DataProvider.tsx         ← Global data context (CRUD + state)
-│   ├── AddTransactionSheet.tsx  ← Bottom sheet for adding transactions
-│   ├── AddWealthSheet.tsx       ← Bottom sheet for adding wealth accounts
-│   ├── layout/AppShell.tsx      ← Bottom nav + FAB shell
-│   └── ui/index.tsx             ← Reusable UI components
-├── lib/
-│   ├── mongodb.ts               ← DB connection
-│   ├── models.ts                ← Mongoose schemas
-│   ├── auth.ts                  ← NextAuth config
-│   └── utils.ts                 ← Formatting helpers
-└── types/index.ts               ← TypeScript types + constants
+Request
+  └─ middleware.ts (runs on every non-static path)
+       ├─ Public path? (/auth, /api/auth/**, /icons/**)  → allow
+       ├─ Has valid JWT token + hitting /auth or /?      → redirect /dashboard
+       └─ No token + protected path?                     → redirect /auth
 ```
+
+No `getServerSession()` calls in layouts — all handled centrally.
+
+---
+
+## 📱 Install as PWA
+
+**iOS Safari:** Share button → "Add to Home Screen"  
+**Android Chrome:** Menu (⋮) → "Add to Home Screen" or "Install app"
+
+The app will launch in standalone mode (no browser chrome) with the correct splash icon.
 
 ---
 
 ## 🚢 Deploy to Vercel
 
 ```bash
-npm install -g vercel
-vercel
+npx vercel
 ```
 
-Add environment variables in Vercel dashboard:
+Add these env vars in the Vercel dashboard:
 - `MONGODB_URI`
-- `NEXTAUTH_SECRET`
-- `NEXTAUTH_URL` → your Vercel URL (e.g. `https://finance.vercel.app`)
+- `NEXTAUTH_SECRET`  
+- `NEXTAUTH_URL` → your production URL
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠 Tech Stack
 
-| Layer       | Tech |
-|-------------|------|
-| Framework   | Next.js 14 (App Router) |
-| Database    | MongoDB + Mongoose |
-| Auth        | NextAuth.js (credentials) |
-| Styling     | Tailwind CSS + CSS variables |
-| Font        | DM Sans (Google Fonts) |
-| Icons       | Lucide React |
-| Language    | TypeScript |
-
----
-
-## 📱 Mobile Usage
-
-The app is designed mobile-first:
-- Add to home screen on iOS: Share → "Add to Home Screen"
-- Add to home screen on Android: Menu → "Add to Home Screen"
-- Works offline for viewing (add PWA support for full offline)
-# Finance-tracker
+| | |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Database | MongoDB + Mongoose |
+| Auth | NextAuth.js v4 (credentials, JWT) |
+| Styling | Tailwind CSS + CSS custom properties |
+| Font | DM Sans (Google Fonts) |
+| Icons | Lucide React |
+| Language | TypeScript (strict + noUncheckedIndexedAccess) |

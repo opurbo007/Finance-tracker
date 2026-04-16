@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="112" ry="112" fill="#185FA5"/>
+
+  <!-- Outer coin ring -->
+  <circle cx="256" cy="248" r="148" fill="none" stroke="white" stroke-width="22" opacity="0.25"/>
+
+  <!-- Inner coin fill -->
+  <circle cx="256" cy="248" r="120" fill="white" opacity="0.12"/>
+
+  <!-- Bangladeshi Taka ৳ symbol — white -->
+  <text
+    x="256" y="308"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, sans-serif"
+    font-size="172"
+    font-weight="700"
+    fill="white"
+  >৳</text>
+
+  <!-- Bottom label band -->
+  <rect x="80" y="400" width="352" height="56" rx="14" fill="white" opacity="0.15"/>
+  <text
+    x="256" y="438"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, sans-serif"
+    font-size="26"
+    font-weight="600"
+    fill="white"
+    letter-spacing="3"
+  >FINANCE</text>
+</svg>

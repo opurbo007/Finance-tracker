@@ -2,13 +2,26 @@
 import { useState } from 'react'
 import { BottomSheet, SelectableChip } from '@/components/ui'
 import { ALL_WEALTH_TYPES } from '@/types'
+import type { WealthAccount } from '@/types'
 import { useData } from '@/components/DataProvider'
 
 interface Props { open: boolean; onClose: () => void }
 
+// Badge types are a closed union — validated at the constant level
+const VALID_BADGE_TYPES = new Set<WealthAccount['badgeType']>([
+  'liquid', 'secure', 'invest', 'cash', 'debt',
+])
+
+function toBadgeType(raw: string): WealthAccount['badgeType'] {
+  if (VALID_BADGE_TYPES.has(raw as WealthAccount['badgeType'])) {
+    return raw as WealthAccount['badgeType']
+  }
+  return 'liquid' // safe fallback
+}
+
 export function AddWealthSheet({ open, onClose }: Props) {
   const { addWealthAccount } = useData()
-  const [selectedType, setSelectedType] = useState(ALL_WEALTH_TYPES[0])
+  const [selectedType, setSelectedType] = useState(ALL_WEALTH_TYPES[0]!)
   const [name,   setName]   = useState('')
   const [amount, setAmount] = useState('')
   const [notes,  setNotes]  = useState('')
@@ -20,26 +33,28 @@ export function AddWealthSheet({ open, onClose }: Props) {
     setSaving(true)
     try {
       await addWealthAccount({
-        name: name.trim(),
+        name:        name.trim(),
         accountType: selectedType.id,
         typeLabel:   selectedType.label,
         emoji:       selectedType.emoji,
-        badgeType:   selectedType.badge as any,
+        badgeType:   toBadgeType(selectedType.badge),
         badgeLabel:  selectedType.badgeLabel,
         amount:      amt,
         isDebt:      selectedType.isDebt,
         notes:       notes.trim(),
       })
       setName(''); setAmount(''); setNotes('')
-      setSelectedType(ALL_WEALTH_TYPES[0])
+      setSelectedType(ALL_WEALTH_TYPES[0]!)
       onClose()
-    } finally { setSaving(false) }
+    } finally {
+      setSaving(false)
+    }
   }
 
-  // 3 per row
+  // 3 columns per row
   const rows = ALL_WEALTH_TYPES.reduce<(typeof ALL_WEALTH_TYPES)[]>((acc, t, i) => {
     if (i % 3 === 0) acc.push([])
-    acc[acc.length - 1].push(t)
+    acc[acc.length - 1]!.push(t)
     return acc
   }, [])
 
@@ -52,9 +67,13 @@ export function AddWealthSheet({ open, onClose }: Props) {
             {rows.map((row, ri) => (
               <div key={ri} className="grid grid-cols-3 gap-2">
                 {row.map(wt => (
-                  <SelectableChip key={wt.id} label={wt.label} emoji={wt.emoji}
+                  <SelectableChip
+                    key={wt.id}
+                    label={wt.label}
+                    emoji={wt.emoji}
                     selected={selectedType.id === wt.id}
-                    onClick={() => setSelectedType(wt)} />
+                    onClick={() => setSelectedType(wt)}
+                  />
                 ))}
               </div>
             ))}
@@ -62,29 +81,54 @@ export function AddWealthSheet({ open, onClose }: Props) {
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Name</label>
-          <input type="text" placeholder="e.g. Dutch Bangla Bank, Sanchay Patra"
-            value={name} onChange={e => setName(e.target.value)} className="input-field" />
+          <label htmlFor="w-name" className="text-xs font-medium text-gray-500 mb-1 block">Name</label>
+          <input
+            id="w-name"
+            type="text"
+            placeholder="e.g. Dutch Bangla Bank, Sanchay Patra"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="input-field"
+          />
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Amount (৳)</label>
+          <label htmlFor="w-amount" className="text-xs font-medium text-gray-500 mb-1 block">Amount (৳)</label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">৳</span>
-            <input type="number" inputMode="decimal" placeholder="0"
-              value={amount} onChange={e => setAmount(e.target.value)} className="input-field pl-8" />
+            <input
+              id="w-amount"
+              type="number"
+              inputMode="decimal"
+              placeholder="0"
+              value={amount}
+              onChange={e => setAmount(e.target.value)}
+              className="input-field pl-8"
+            />
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Notes (optional)</label>
-          <input type="text" placeholder="Account number, maturity date, etc."
-            value={notes} onChange={e => setNotes(e.target.value)} className="input-field" />
+          <label htmlFor="w-notes" className="text-xs font-medium text-gray-500 mb-1 block">
+            Notes <span className="text-gray-300">(optional)</span>
+          </label>
+          <input
+            id="w-notes"
+            type="text"
+            placeholder="Account number, maturity date, etc."
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            className="input-field"
+          />
         </div>
       </div>
 
-      <button onClick={handleSave} disabled={saving || !amount || !name}
-        className="btn-primary mt-5 disabled:opacity-40 disabled:cursor-not-allowed">
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={saving || !amount || !name}
+        className="btn-primary mt-5 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
         {saving ? 'Saving…' : 'Add Account'}
       </button>
     </BottomSheet>

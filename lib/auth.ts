@@ -1,9 +1,10 @@
-import NextAuth, { NextAuthOptions } from 'next-auth'
+import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { connectDB } from '@/lib/mongodb'
 import { UserModel } from '@/lib/models'
 
+// Type augmentations live in types/next-auth.d.ts — no `as any` needed here.
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -15,11 +16,11 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
         await connectDB()
-        const user = await UserModel.findOne({ email: credentials.email.toLowerCase() })
+        const user = await UserModel.findOne({ email: credentials.email.toLowerCase() }).lean()
         if (!user) return null
-        const valid = await bcrypt.compare(credentials.password, user.password)
+        const valid = await bcrypt.compare(credentials.password, user.password as string)
         if (!valid) return null
-        return { id: user._id.toString(), email: user.email }
+        return { id: (user._id as { toString(): string }).toString(), email: user.email as string }
       },
     }),
   ],
@@ -30,12 +31,10 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (session.user) (session.user as any).id = token.id
+      session.user.id = token.id
       return session
     },
   },
   pages: { signIn: '/auth' },
   secret: process.env.NEXTAUTH_SECRET,
 }
-
-export default NextAuth(authOptions)

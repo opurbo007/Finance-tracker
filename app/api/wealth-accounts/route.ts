@@ -1,53 +1,65 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
-import { WealthAccountModel } from "@/lib/models";
+import { NextResponse } from 'next/server'
+import { connectDB } from '@/lib/mongodb'
+import { WealthAccountModel } from '@/lib/models'
+import { getAuthUserId } from '@/lib/get-auth-user'
+import type { WealthAccount } from '@/types'
 
-async function getUserId() {
-  const session = await getServerSession(authOptions);
-  return (session?.user as any)?.id ?? null;
+function unauthorized() {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 }
 
-export async function GET() {
-  const userId = await getUserId();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  await connectDB();
-  const accounts = await WealthAccountModel.find({ userId })
-    .sort({ createdAt: 1 })
-    .lean();
-  return NextResponse.json(
-    accounts.map((a) => ({ ...a, _id: (a._id as any).toString() })),
-  );
+function toWealthAccount(d: Record<string, unknown>): WealthAccount {
+  return {
+    _id:         (d._id as { toString(): string }).toString(),
+    userId:      d.userId as string,
+    name:        d.name as string,
+    accountType: d.accountType as string,
+    typeLabel:   d.typeLabel as string,
+    emoji:       d.emoji as string,
+    badgeType:   d.badgeType as WealthAccount['badgeType'],
+    badgeLabel:  d.badgeLabel as string,
+    amount:      d.amount as number,
+    isDebt:      d.isDebt as boolean,
+    notes:       (d.notes as string) ?? '',
+    createdAt:   d.createdAt as number,
+  }
 }
 
-export async function POST(req: Request) {
-  const userId = await getUserId();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const body = await req.json();
-  await connectDB();
-  const acc = await WealthAccountModel.create({ ...body, userId });
-  return NextResponse.json({ ...acc.toObject(), _id: acc._id.toString() });
+export async function GET(): Promise<NextResponse> {
+  const userId = await getAuthUserId()
+  if (!userId) return unauthorized()
+
+  await connectDB()
+  const docs = await WealthAccountModel.find({ userId }).sort({ createdAt: 1 }).lean()
+  return NextResponse.json(docs.map(d => toWealthAccount(d as Record<string, unknown>)))
 }
 
-export async function DELETE(req: Request) {
-  const userId = await getUserId();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { id } = await req.json();
-  await connectDB();
-  await WealthAccountModel.deleteOne({ _id: id, userId });
-  return NextResponse.json({ success: true });
+export async function POST(req: Request): Promise<NextResponse> {
+  const userId = await getAuthUserId()
+  if (!userId) return unauthorized()
+
+  const body = await req.json() as Omit<WealthAccount, '_id' | 'userId' | 'createdAt'>
+  await connectDB()
+  const doc = await WealthAccountModel.create({ ...body, userId })
+  return NextResponse.json(toWealthAccount(doc.toObject() as Record<string, unknown>))
 }
 
-export async function PATCH(req: Request) {
-  const userId = await getUserId();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { id, amount } = await req.json();
-  await connectDB();
-  await WealthAccountModel.updateOne({ _id: id, userId }, { $set: { amount } });
-  return NextResponse.json({ success: true });
+export async function DELETE(req: Request): Promise<NextResponse> {
+  const userId = await getAuthUserId()
+  if (!userId) return unauthorized()
+
+  const { id } = await req.json() as { id: string }
+  await connectDB()
+  await WealthAccountModel.deleteOne({ _id: id, userId })
+  return NextResponse.json({ success: true })
+}
+
+export async function PATCH(req: Request): Promise<NextResponse> {
+  const userId = await getAuthUserId()
+  if (!userId) return unauthorized()
+
+  const { id, amount } = await req.json() as { id: string; amount: number }
+  await connectDB()
+  await WealthAccountModel.updateOne({ _id: id, userId }, { $set: { amount } })
+  return NextResponse.json({ success: true })
 }

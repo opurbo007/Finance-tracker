@@ -1,17 +1,32 @@
 import mongoose from 'mongoose'
 
-const MONGODB_URI = process.env.MONGODB_URI!
+const MONGODB_URI = process.env.MONGODB_URI
 
-if (!MONGODB_URI) throw new Error('Please define MONGODB_URI in .env.local')
+if (!MONGODB_URI) {
+  throw new Error('Please define MONGODB_URI in .env.local')
+}
 
-let cached = (global as any).mongoose || { conn: null, promise: null }
-;(global as any).mongoose = cached
+// Extend the NodeJS global type so we can cache the connection
+// across hot-reloads in development without `as any`.
+interface MongooseCache {
+  conn:    typeof mongoose | null
+  promise: Promise<typeof mongoose> | null
+}
 
-export async function connectDB() {
+declare global {
+  // eslint-disable-next-line no-var
+  var __mongooseCache: MongooseCache | undefined
+}
+
+const cached: MongooseCache = (global.__mongooseCache ??= { conn: null, promise: null })
+
+export async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn
+
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, { bufferCommands: false })
   }
+
   cached.conn = await cached.promise
   return cached.conn
 }
