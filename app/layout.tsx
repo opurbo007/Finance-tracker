@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Providers } from './providers'
-import { PwaRegister } from '@/components/PwaRegister'
+import { PwaRegister, PWA_INLINE_SCRIPT } from '@/components/PwaRegister'
 
 export const metadata: Metadata = {
   title: { default: 'Finance Tracker', template: '%s · Finance' },
@@ -18,7 +18,11 @@ export const metadata: Metadata = {
     apple: '/icons/apple-touch-icon.png',
     shortcut: '/favicon.ico',
   },
-  openGraph: { title: 'Finance Tracker', description: 'Track your money, grow your wealth.', type: 'website' },
+  openGraph: {
+    title: 'Finance Tracker',
+    description: 'Track your money, grow your wealth.',
+    type: 'website',
+  },
 }
 
 export const viewport: Viewport = {
@@ -33,12 +37,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <head>
+        {/*
+          CRITICAL: This inline script MUST be the very first thing in <head>.
+          It captures `beforeinstallprompt` synchronously before React hydrates,
+          preventing Chrome's install prompt from firing and being missed.
+        */}
+        <script
+          dangerouslySetInnerHTML={{ __html: PWA_INLINE_SCRIPT }}
+        />
+
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap"
           rel="stylesheet"
         />
+
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -47,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="antialiased">
         <Providers>{children}</Providers>
+        {/* PwaRegister registers the SW and renders the install banner */}
         <PwaRegister />
       </body>
     </html>
