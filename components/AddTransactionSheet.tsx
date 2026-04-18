@@ -1,17 +1,24 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BottomSheet, TypeToggle, SelectableChip } from '@/components/ui'
-import { ALL_CATEGORIES, PAYMENT_METHODS } from '@/types'
+import { ALL_CATEGORIES, PAYMENT_METHODS, type Transaction } from '@/types'
 import { useData } from '@/components/DataProvider'
 
-interface Props { open: boolean; onClose: () => void }
+interface Props {
+  open:         boolean
+  onClose:      () => void
+  /** When provided, sheet operates in edit mode */
+  editTx?:      Transaction | null
+}
 
 function todayISO(): string {
   return new Date().toISOString().split('T')[0] ?? ''
 }
 
-export function AddTransactionSheet({ open, onClose }: Props) {
-  const { addTransaction } = useData()
+export function AddTransactionSheet({ open, onClose, editTx }: Props) {
+  const { addTransaction, updateTransaction } = useData()
+  const isEdit = !!editTx
+
   const [type,   setType]   = useState<'expense' | 'income'>('expense')
   const [amount, setAmount] = useState('')
   const [desc,   setDesc]   = useState('')
@@ -20,6 +27,25 @@ export function AddTransactionSheet({ open, onClose }: Props) {
   const [date,   setDate]   = useState(todayISO)
   const [saving, setSaving] = useState(false)
 
+  // Populate fields when editing
+  useEffect(() => {
+    if (editTx) {
+      setType(editTx.type)
+      setAmount(String(editTx.amount))
+      setDesc(editTx.description)
+      setCat(editTx.category)
+      setMethod(editTx.paymentMethod)
+      setDate(editTx.date)
+    } else {
+      setType('expense')
+      setAmount('')
+      setDesc('')
+      setCat('food')
+      setMethod('Cash')
+      setDate(todayISO())
+    }
+  }, [editTx, open])
+
   const catObj = ALL_CATEGORIES.find(c => c.id === cat)
 
   async function handleSave() {
@@ -27,52 +53,50 @@ export function AddTransactionSheet({ open, onClose }: Props) {
     if (!amt || !desc.trim() || !catObj) return
     setSaving(true)
     try {
-      await addTransaction({
-        type, amount: amt, description: desc.trim(),
-        category: cat, categoryEmoji: catObj.emoji,
-        paymentMethod: method, date,
-      })
-      setAmount(''); setDesc(''); setCat('food'); setMethod('Cash'); setDate(todayISO())
+      if (isEdit && editTx) {
+        await updateTransaction(editTx._id, {
+          type, amount: amt, description: desc.trim(),
+          category: cat, categoryEmoji: catObj.emoji,
+          paymentMethod: method, date,
+        })
+      } else {
+        await addTransaction({
+          type, amount: amt, description: desc.trim(),
+          category: cat, categoryEmoji: catObj.emoji,
+          paymentMethod: method, date,
+        })
+      }
       onClose()
-    } finally { setSaving(false) }
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Add Transaction">
+    <BottomSheet open={open} onClose={onClose} title={isEdit ? 'Edit Transaction' : 'Add Transaction'}>
       <TypeToggle value={type} onChange={setType} />
 
       <div className="space-y-4">
-        {/* Amount */}
         <div>
           <label htmlFor="tx-amount" className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-3)' }}>
             Amount
           </label>
           <div className="relative">
-            <span
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-base font-medium select-none"
-              style={{ color: 'var(--text-3)' }}
-            >৳</span>
-            <input
-              id="tx-amount" type="number" inputMode="decimal" placeholder="0.00"
-              value={amount} onChange={e => setAmount(e.target.value)}
-              className="input-field pl-9"
-            />
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base font-medium select-none"
+              style={{ color: 'var(--text-3)' }}>৳</span>
+            <input id="tx-amount" type="number" inputMode="decimal" placeholder="0.00"
+              value={amount} onChange={e => setAmount(e.target.value)} className="input-field pl-9" />
           </div>
         </div>
 
-        {/* Description */}
         <div>
           <label htmlFor="tx-desc" className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-3)' }}>
             Description
           </label>
-          <input
-            id="tx-desc" type="text" placeholder="What was this for?"
-            value={desc} onChange={e => setDesc(e.target.value)}
-            className="input-field"
-          />
+          <input id="tx-desc" type="text" placeholder="What was this for?"
+            value={desc} onChange={e => setDesc(e.target.value)} className="input-field" />
         </div>
 
-        {/* Category */}
         <div>
           <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text-3)' }}>Category</p>
           <div className="grid grid-cols-4 gap-2">
@@ -83,7 +107,6 @@ export function AddTransactionSheet({ open, onClose }: Props) {
           </div>
         </div>
 
-        {/* Date + Method */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor="tx-date" className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-3)' }}>
@@ -104,12 +127,9 @@ export function AddTransactionSheet({ open, onClose }: Props) {
         </div>
       </div>
 
-      <button
-        type="button" onClick={handleSave}
-        disabled={saving || !amount || !desc}
-        className="btn-primary mt-5"
-      >
-        {saving ? 'Saving…' : 'Save Transaction'}
+      <button type="button" onClick={handleSave} disabled={saving || !amount || !desc}
+        className="btn-primary mt-5">
+        {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Save Transaction'}
       </button>
     </BottomSheet>
   )

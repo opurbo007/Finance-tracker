@@ -6,24 +6,21 @@ import {
 import { useSession } from 'next-auth/react'
 import type { Transaction, WealthAccount } from '@/types'
 
-// ─── Context type ─────────────────────────────────────────────────────────────
-
 interface DataContextType {
   transactions:        Transaction[]
   wealthAccounts:      WealthAccount[]
   loading:             boolean
-  addTransaction:      (data: NewTransaction)      => Promise<void>
-  deleteTransaction:   (id: string)                => Promise<void>
-  addWealthAccount:    (data: NewWealthAccount)    => Promise<void>
-  deleteWealthAccount: (id: string)                => Promise<void>
-  updateWealthAmount:  (id: string, amount: number) => Promise<void>
-  refresh:             ()                          => Promise<void>
+  addTransaction:      (data: NewTransaction)       => Promise<void>
+  updateTransaction:   (id: string, data: Partial<NewTransaction>) => Promise<void>
+  deleteTransaction:   (id: string)                 => Promise<void>
+  addWealthAccount:    (data: NewWealthAccount)     => Promise<void>
+  updateWealthAccount: (id: string, data: Partial<NewWealthAccount>) => Promise<void>
+  deleteWealthAccount: (id: string)                 => Promise<void>
+  refresh:             ()                           => Promise<void>
 }
 
 type NewTransaction   = Omit<Transaction,   '_id' | 'userId' | 'createdAt'>
 type NewWealthAccount = Omit<WealthAccount, '_id' | 'userId' | 'createdAt'>
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' } as const
 
@@ -36,18 +33,14 @@ async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
-
 const DataContext = createContext<DataContextType | null>(null)
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const { status } = useSession()
-
   const [transactions,   setTransactions]   = useState<Transaction[]>([])
   const [wealthAccounts, setWealthAccounts] = useState<WealthAccount[]>([])
   const [loading,        setLoading]        = useState(false)
 
-  // ── Fetch all ──────────────────────────────────────────────────────────────
   const fetchAll = useCallback(async () => {
     if (status !== 'authenticated') return
     setLoading(true)
@@ -67,53 +60,55 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { void fetchAll() }, [fetchAll])
 
-  // ── Transactions ───────────────────────────────────────────────────────────
+  // ── Transactions ──────────────────────────────────────────────────────────
   const addTransaction = async (data: NewTransaction) => {
     const tx = await apiFetch<Transaction>('/api/transactions', {
-      method: 'POST',
-      body:   JSON.stringify(data),
+      method: 'POST', body: JSON.stringify(data),
     })
     setTransactions(prev => [tx, ...prev])
   }
 
+  const updateTransaction = async (id: string, data: Partial<NewTransaction>) => {
+    const tx = await apiFetch<Transaction>('/api/transactions', {
+      method: 'PATCH', body: JSON.stringify({ id, ...data }),
+    })
+    setTransactions(prev => prev.map(t => t._id === id ? tx : t))
+  }
+
   const deleteTransaction = async (id: string) => {
     await apiFetch<{ success: true }>('/api/transactions', {
-      method: 'DELETE',
-      body:   JSON.stringify({ id }),
+      method: 'DELETE', body: JSON.stringify({ id }),
     })
     setTransactions(prev => prev.filter(t => t._id !== id))
   }
 
-  // ── Wealth accounts ────────────────────────────────────────────────────────
+  // ── Wealth accounts ───────────────────────────────────────────────────────
   const addWealthAccount = async (data: NewWealthAccount) => {
     const acc = await apiFetch<WealthAccount>('/api/wealth-accounts', {
-      method: 'POST',
-      body:   JSON.stringify(data),
+      method: 'POST', body: JSON.stringify(data),
     })
     setWealthAccounts(prev => [...prev, acc])
   }
 
-  const deleteWealthAccount = async (id: string) => {
-    await apiFetch<{ success: true }>('/api/wealth-accounts', {
-      method: 'DELETE',
-      body:   JSON.stringify({ id }),
+  const updateWealthAccount = async (id: string, data: Partial<NewWealthAccount>) => {
+    const acc = await apiFetch<WealthAccount>('/api/wealth-accounts', {
+      method: 'PATCH', body: JSON.stringify({ id, ...data }),
     })
-    setWealthAccounts(prev => prev.filter(a => a._id !== id))
+    setWealthAccounts(prev => prev.map(a => a._id === id ? acc : a))
   }
 
-  const updateWealthAmount = async (id: string, amount: number) => {
+  const deleteWealthAccount = async (id: string) => {
     await apiFetch<{ success: true }>('/api/wealth-accounts', {
-      method: 'PATCH',
-      body:   JSON.stringify({ id, amount }),
+      method: 'DELETE', body: JSON.stringify({ id }),
     })
-    setWealthAccounts(prev => prev.map(a => a._id === id ? { ...a, amount } : a))
+    setWealthAccounts(prev => prev.filter(a => a._id !== id))
   }
 
   return (
     <DataContext.Provider value={{
       transactions, wealthAccounts, loading,
-      addTransaction, deleteTransaction,
-      addWealthAccount, deleteWealthAccount, updateWealthAmount,
+      addTransaction, updateTransaction, deleteTransaction,
+      addWealthAccount, updateWealthAccount, deleteWealthAccount,
       refresh: fetchAll,
     }}>
       {children}

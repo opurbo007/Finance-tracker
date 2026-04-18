@@ -1,13 +1,19 @@
 'use client'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { signOut } from 'next-auth/react'
-import { LogOut, TrendingUp, TrendingDown, Wallet } from 'lucide-react'
+import { LogOut, TrendingUp, TrendingDown } from 'lucide-react'
 import { useData } from '@/components/DataProvider'
-import { BudgetBar, SectionLabel, TransactionItem, EmptyState, Spinner } from '@/components/ui'
+import { BudgetBar, SectionLabel, TransactionItem, EmptyState, Spinner, ConfirmDialog } from '@/components/ui'
+import { AddTransactionSheet } from '@/components/AddTransactionSheet'
 import { formatBdt, greeting, currentMonth } from '@/lib/utils'
+import type { Transaction } from '@/types'
 
 export default function DashboardPage() {
   const { transactions, loading, deleteTransaction } = useData()
+
+  const [editTx,   setEditTx]   = useState<Transaction | null>(null)
+  const [deleteTx, setDeleteTx] = useState<Transaction | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const today = new Date().toISOString().split('T')[0] ?? ''
   const month = currentMonth()
@@ -27,10 +33,16 @@ export default function DashboardPage() {
     weekday: 'long', day: 'numeric', month: 'long',
   })
 
+  async function handleConfirmDelete() {
+    if (!deleteTx) return
+    setDeleting(true)
+    try { await deleteTransaction(deleteTx._id) }
+    finally { setDeleting(false); setDeleteTx(null) }
+  }
+
   return (
     <div className="px-4 pt-safe">
-
-      {/* ── Header ──────────────────────────────────────────────────────── */}
+      {/* Header */}
       <div className="flex items-center justify-between py-5">
         <div>
           <p className="text-[13px]" style={{ color: 'var(--text-3)' }}>{dateStr}</p>
@@ -38,29 +50,23 @@ export default function DashboardPage() {
             {greeting()} 👋
           </h1>
         </div>
-        <button
-          onClick={() => signOut({ callbackUrl: '/auth' })}
+        <button onClick={() => signOut({ callbackUrl: '/auth' })}
           className="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
-          style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}
-        >
+          style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}>
           <LogOut size={16} />
         </button>
       </div>
 
-      {/* ── Hero balance card ────────────────────────────────────────────── */}
+      {/* Hero balance card */}
       <div className="hero-card p-5 mb-4">
         <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
           Balance this month
         </p>
-        <p
-          className="text-4xl font-bold font-display mb-4 relative z-10"
-          style={{ color: summary.balance >= 0 ? '#fff' : 'var(--rose)' }}
-        >
+        <p className="text-4xl font-bold font-display mb-4 relative z-10"
+          style={{ color: summary.balance >= 0 ? '#fff' : 'var(--rose)' }}>
           {summary.balance < 0 ? '−' : ''}{formatBdt(Math.abs(summary.balance))}
         </p>
         <BudgetBar pct={summary.pct} />
-
-        {/* Income / Expense row */}
         <div className="flex gap-4 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: 'var(--emerald-dim)' }}>
@@ -68,9 +74,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Income</p>
-              <p className="text-sm font-semibold font-display" style={{ color: 'var(--emerald)' }}>
-                {formatBdt(summary.income)}
-              </p>
+              <p className="text-sm font-semibold font-display" style={{ color: 'var(--emerald)' }}>{formatBdt(summary.income)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -79,15 +83,13 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Spent</p>
-              <p className="text-sm font-semibold font-display" style={{ color: 'var(--rose)' }}>
-                {formatBdt(summary.expense)}
-              </p>
+              <p className="text-sm font-semibold font-display" style={{ color: 'var(--rose)' }}>{formatBdt(summary.expense)}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Today ───────────────────────────────────────────────────────── */}
+      {/* Today */}
       <SectionLabel>Today&apos;s Activity</SectionLabel>
 
       {loading
@@ -97,11 +99,26 @@ export default function DashboardPage() {
           : (
             <div className="space-y-2 pb-4">
               {todayTx.map(tx => (
-                <TransactionItem key={tx._id} tx={tx} onDelete={() => deleteTransaction(tx._id)} />
+                <TransactionItem key={tx._id} tx={tx}
+                  onEdit={() => setEditTx(tx)}
+                  onDelete={() => setDeleteTx(tx)} />
               ))}
             </div>
           )
       }
+
+      {/* Edit sheet */}
+      <AddTransactionSheet open={!!editTx} onClose={() => setEditTx(null)} editTx={editTx} />
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={!!deleteTx}
+        title="Delete transaction?"
+        message={deleteTx ? `"${deleteTx.description}" will be permanently removed.` : ''}
+        confirmLabel={deleting ? 'Deleting…' : 'Delete'}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTx(null)}
+      />
     </div>
   )
 }
