@@ -471,7 +471,7 @@ export function WealthCard({
           {account.isDebt ? "−" : ""}
           {formatBdt(account.amount)}
         </span>
-        <div className="flex flex-col gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity sm:flex hidden">
+        <div className="flex flex-col gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <ActionBtn
             icon={<Pencil size={11} />}
             onClick={onEdit}
