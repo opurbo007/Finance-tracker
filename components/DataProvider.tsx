@@ -10,13 +10,13 @@ interface DataContextType {
   transactions:        Transaction[]
   wealthAccounts:      WealthAccount[]
   loading:             boolean
-  addTransaction:      (data: NewTransaction)       => Promise<void>
-  updateTransaction:   (id: string, data: Partial<NewTransaction>) => Promise<void>
-  deleteTransaction:   (id: string)                 => Promise<void>
-  addWealthAccount:    (data: NewWealthAccount)     => Promise<void>
+  addTransaction:      (data: NewTransaction)                        => Promise<void>
+  updateTransaction:   (id: string, data: Partial<NewTransaction>)  => Promise<void>
+  deleteTransaction:   (id: string)                                  => Promise<void>
+  addWealthAccount:    (data: NewWealthAccount)                      => Promise<void>
   updateWealthAccount: (id: string, data: Partial<NewWealthAccount>) => Promise<void>
-  deleteWealthAccount: (id: string)                 => Promise<void>
-  refresh:             ()                           => Promise<void>
+  deleteWealthAccount: (id: string)                                  => Promise<void>
+  refresh:             ()                                            => Promise<void>
 }
 
 type NewTransaction   = Omit<Transaction,   '_id' | 'userId' | 'createdAt'>
@@ -66,6 +66,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       method: 'POST', body: JSON.stringify(data),
     })
     setTransactions(prev => [tx, ...prev])
+    // Refresh wealth accounts if a wealth link was applied
+    if (data.linkedWealthId && data.wealthEffect && data.wealthEffect !== 'none') {
+      const accounts = await apiFetch<WealthAccount[]>('/api/wealth-accounts')
+      setWealthAccounts(accounts)
+    }
   }
 
   const updateTransaction = async (id: string, data: Partial<NewTransaction>) => {
@@ -73,13 +78,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
       method: 'PATCH', body: JSON.stringify({ id, ...data }),
     })
     setTransactions(prev => prev.map(t => t._id === id ? tx : t))
+    // Always re-fetch wealth after edit since old/new effects may have changed
+    const accounts = await apiFetch<WealthAccount[]>('/api/wealth-accounts')
+    setWealthAccounts(accounts)
   }
 
   const deleteTransaction = async (id: string) => {
+    // Capture before removing from state (to know if wealth refresh needed)
+    const tx = transactions.find(t => t._id === id)
     await apiFetch<{ success: true }>('/api/transactions', {
       method: 'DELETE', body: JSON.stringify({ id }),
     })
     setTransactions(prev => prev.filter(t => t._id !== id))
+    if (tx?.linkedWealthId && tx.wealthEffect && tx.wealthEffect !== 'none') {
+      const accounts = await apiFetch<WealthAccount[]>('/api/wealth-accounts')
+      setWealthAccounts(accounts)
+    }
   }
 
   // ── Wealth accounts ───────────────────────────────────────────────────────

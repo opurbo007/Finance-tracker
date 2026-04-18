@@ -1,32 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Background rounded square -->
-  <rect width="512" height="512" rx="112" ry="112" fill="#185FA5"/>
+  <defs>
+    <clipPath id="bg-clip">
+      <rect width="512" height="512" rx="112" ry="112"/>
+    </clipPath>
+  </defs>
 
-  <!-- Outer coin ring -->
-  <circle cx="256" cy="248" r="148" fill="none" stroke="white" stroke-width="22" opacity="0.25"/>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" ry="112" fill="#0A1232"/>
+  <rect width="512" height="256" rx="112" ry="112" fill="#16265A" opacity="0.7"/>
 
-  <!-- Inner coin fill -->
-  <circle cx="256" cy="248" r="120" fill="white" opacity="0.12"/>
+  <!-- Coin shadow -->
+  <ellipse cx="262" cy="232" rx="146" ry="146" fill="rgba(0,0,0,0.27)"/>
 
-  <!-- Bangladeshi Taka ৳ symbol — white -->
-  <text
-    x="256" y="308"
-    text-anchor="middle"
-    font-family="system-ui, -apple-system, sans-serif"
-    font-size="172"
-    font-weight="700"
-    fill="white"
-  >৳</text>
+  <!-- Coin face -->
+  <circle cx="256" cy="224" r="146" fill="white"/>
 
-  <!-- Bottom label band -->
-  <rect x="80" y="400" width="352" height="56" rx="14" fill="white" opacity="0.15"/>
-  <text
-    x="256" y="438"
-    text-anchor="middle"
-    font-family="system-ui, -apple-system, sans-serif"
-    font-size="26"
-    font-weight="600"
-    fill="white"
-    letter-spacing="3"
-  >FINANCE</text>
+  <!-- Coin outer ring -->
+  <circle cx="256" cy="224" r="143" fill="none" stroke="#6496E6" stroke-width="4" opacity="0.6"/>
+
+  <!-- Coin inner ring -->
+  <circle cx="256" cy="224" r="111" fill="none" stroke="#185FA5" stroke-width="3" opacity="0.35"/>
+
+  <!-- Three bars -->
+  <!-- Top bar -->
+  <rect x="172" y="196" width="168" height="14" rx="7" fill="#145099" opacity="0.82"/>
+  <!-- Middle bar (shorter) -->
+  <rect x="198" y="219" width="120" height="14" rx="7" fill="#145099" opacity="0.82"/>
+  <!-- Bottom bar -->
+  <rect x="172" y="242" width="168" height="14" rx="7" fill="#145099" opacity="0.82"/>
+
+  <!-- Growth badge -->
+  <circle cx="362" cy="118" r="46" fill="#0EB978"/>
+  <circle cx="362" cy="118" r="46" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+  <!-- Arrow up -->
+  <polygon points="362,96 338,140 386,140" fill="white"/>
+
+  <!-- Bottom label strip -->
+  <rect x="102" y="415" width="308" height="42" rx="21" fill="rgba(255,255,255,0.15)"/>
 </svg>
