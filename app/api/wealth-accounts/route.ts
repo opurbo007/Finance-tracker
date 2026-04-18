@@ -8,20 +8,21 @@ function unauthorized() {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 }
 
-function toWealthAccount(d: Record<string, unknown>): WealthAccount {
+function toWealthAccount(d: unknown): WealthAccount {
+  const doc = d as Record<string, unknown>
   return {
-    _id:         (d._id as { toString(): string }).toString(),
-    userId:      d.userId as string,
-    name:        d.name as string,
-    accountType: d.accountType as string,
-    typeLabel:   d.typeLabel as string,
-    emoji:       d.emoji as string,
-    badgeType:   d.badgeType as WealthAccount['badgeType'],
-    badgeLabel:  d.badgeLabel as string,
-    amount:      d.amount as number,
-    isDebt:      d.isDebt as boolean,
-    notes:       (d.notes as string) ?? '',
-    createdAt:   d.createdAt as number,
+    _id:         (doc['_id'] as { toString(): string }).toString(),
+    userId:      doc['userId'] as string,
+    name:        doc['name'] as string,
+    accountType: doc['accountType'] as string,
+    typeLabel:   doc['typeLabel'] as string,
+    emoji:       doc['emoji'] as string,
+    badgeType:   doc['badgeType'] as WealthAccount['badgeType'],
+    badgeLabel:  doc['badgeLabel'] as string,
+    amount:      doc['amount'] as number,
+    isDebt:      doc['isDebt'] as boolean,
+    notes:       (doc['notes'] as string) ?? '',
+    createdAt:   doc['createdAt'] as number,
   }
 }
 
@@ -30,7 +31,7 @@ export async function GET(): Promise<NextResponse> {
   if (!userId) return unauthorized()
   await connectDB()
   const docs = await WealthAccountModel.find({ userId }).sort({ createdAt: 1 }).lean()
-  return NextResponse.json(docs.map(d => toWealthAccount(d as Record<string, unknown>)))
+  return NextResponse.json(docs.map(d => toWealthAccount(d)))
 }
 
 export async function POST(req: Request): Promise<NextResponse> {
@@ -39,7 +40,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   const body = await req.json() as Omit<WealthAccount, '_id' | 'userId' | 'createdAt'>
   await connectDB()
   const doc = await WealthAccountModel.create({ ...body, userId })
-  return NextResponse.json(toWealthAccount(doc.toObject() as Record<string, unknown>))
+  return NextResponse.json(toWealthAccount(doc.toObject() as unknown))
 }
 
 export async function PATCH(req: Request): Promise<NextResponse> {
@@ -53,7 +54,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
     { new: true }
   ).lean()
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(toWealthAccount(doc as Record<string, unknown>))
+  return NextResponse.json(toWealthAccount(doc))
 }
 
 export async function DELETE(req: Request): Promise<NextResponse> {

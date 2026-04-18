@@ -8,18 +8,19 @@ function unauthorized() {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 }
 
-function toTransaction(d: Record<string, unknown>): Transaction {
+function toTransaction(d: unknown): Transaction {
+  const doc = d as Record<string, unknown>
   return {
-    _id:           (d._id as { toString(): string }).toString(),
-    userId:        d.userId as string,
-    type:          d.type as 'expense' | 'income',
-    amount:        d.amount as number,
-    description:   d.description as string,
-    category:      d.category as string,
-    categoryEmoji: d.categoryEmoji as string,
-    paymentMethod: d.paymentMethod as string,
-    date:          d.date as string,
-    createdAt:     d.createdAt as number,
+    _id:           (doc['_id'] as { toString(): string }).toString(),
+    userId:        doc['userId'] as string,
+    type:          doc['type'] as 'expense' | 'income',
+    amount:        doc['amount'] as number,
+    description:   doc['description'] as string,
+    category:      doc['category'] as string,
+    categoryEmoji: doc['categoryEmoji'] as string,
+    paymentMethod: doc['paymentMethod'] as string,
+    date:          doc['date'] as string,
+    createdAt:     doc['createdAt'] as number,
   }
 }
 
@@ -28,7 +29,7 @@ export async function GET(): Promise<NextResponse> {
   if (!userId) return unauthorized()
   await connectDB()
   const docs = await TransactionModel.find({ userId }).sort({ date: -1, createdAt: -1 }).lean()
-  return NextResponse.json(docs.map(d => toTransaction(d as Record<string, unknown>)))
+  return NextResponse.json(docs.map(d => toTransaction(d)))
 }
 
 export async function POST(req: Request): Promise<NextResponse> {
@@ -37,7 +38,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   const body = await req.json() as Omit<Transaction, '_id' | 'userId' | 'createdAt'>
   await connectDB()
   const doc = await TransactionModel.create({ ...body, userId })
-  return NextResponse.json(toTransaction(doc.toObject() as Record<string, unknown>))
+  return NextResponse.json(toTransaction(doc.toObject() as unknown))
 }
 
 export async function PATCH(req: Request): Promise<NextResponse> {
@@ -51,7 +52,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
     { new: true }
   ).lean()
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(toTransaction(doc as Record<string, unknown>))
+  return NextResponse.json(toTransaction(doc))
 }
 
 export async function DELETE(req: Request): Promise<NextResponse> {
