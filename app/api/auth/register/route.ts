@@ -33,9 +33,11 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     await connectDB();
 
-    const existing = await UserModel.findOne({
-      email: email.toLowerCase(),
-    }).lean();
+    const existing = await (UserModel as any)
+      .findOne({
+        email: email.toLowerCase(),
+      })
+      .lean();
     if (existing) {
       return NextResponse.json(
         { error: "Email already registered" },
@@ -44,7 +46,10 @@ export async function POST(req: Request): Promise<NextResponse> {
     }
 
     const hashed = await bcrypt.hash(password, 12);
-    await UserModel.create({ email: email.toLowerCase(), password: hashed });
+    await (UserModel as any).create({
+      email: email.toLowerCase(),
+      password: hashed,
+    });
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (err: unknown) {
