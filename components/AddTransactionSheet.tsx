@@ -76,20 +76,15 @@ function WealthPicker({
       {/* Dropdown menu */}
       {open && (
         <div
-          className="
-      absolute bottom-full mb-2 w-full rounded-xl shadow-xl overflow-hidden z-50
-      transform transition-all duration-150 ease-out origin-bottom
-    "
+          className="absolute bottom-full mb-2 w-full rounded-xl shadow-lg overflow-hidden z-50"
           style={{
-            background: "rgba(20, 20, 24, 0.98)",
+            background: "rgba(20, 20, 24, 0.98)", // near-opaque dark surface
             border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(12px)",
-            transform: "translateY(0px)",
-            opacity: 1,
+            backdropFilter: "blur(12px)", // subtle glass, not weak transparency
           }}
         >
           <button
-            className="w-full text-left px-3 py-2 hover:bg-white/5 transition"
+            className="w-full text-left px-3 py-2 hover:bg-white/5"
             onClick={() => {
               onSelect("");
               onEffectChange("none");
@@ -102,7 +97,7 @@ function WealthPicker({
           {nonDebts.map((acc) => (
             <button
               key={acc._id}
-              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5 transition"
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5"
               onClick={() => {
                 onSelect(acc._id);
                 onEffectChange(type === "income" ? "add" : "deduct");
@@ -118,6 +113,7 @@ function WealthPicker({
           ))}
         </div>
       )}
+
       {/* Effect selector (kept same UX, but cleaner) */}
       {selectedId && (
         <div className="mt-3">
