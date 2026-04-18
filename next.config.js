@@ -7,17 +7,14 @@ const withPWA = require("next-pwa")({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Strict TypeScript — fail build on type errors
   typescript: {
     ignoreBuildErrors: false,
   },
 
-  // Strict ESLint — fail build on lint errors
   eslint: {
     ignoreDuringBuilds: false,
   },
 
-  // Security + headers
   async headers() {
     return [
       {
@@ -44,10 +41,6 @@ const nextConfig = {
             value: "public, max-age=31536000, immutable",
           },
         ],
-      },
-      {
-        source: "/manifest.webmanifest",
-        headers: [{ key: "Cache-Control", value: "public, max-age=86400" }],
       },
     ];
   },
