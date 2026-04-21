@@ -50,30 +50,28 @@ export default function DashboardPage() {
             {greeting()} 👋
           </h1>
         </div>
-        <button onClick={() => signOut({ callbackUrl: '/auth' })}
-          className="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
-          style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}>
+        <button onClick={() => signOut({ callbackUrl: '/auth' })} className="icon-button w-10 h-10">
           <LogOut size={16} />
         </button>
       </div>
 
       {/* Hero balance card */}
       <div className="hero-card p-5 mb-4">
-        <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
+        <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-3)' }}>
           Balance this month
         </p>
         <p className="text-4xl font-bold font-display mb-4 relative z-10"
-          style={{ color: summary.balance >= 0 ? '#fff' : 'var(--rose)' }}>
-          {summary.balance < 0 ? '−' : ''}{formatBdt(Math.abs(summary.balance))}
+          style={{ color: summary.balance >= 0 ? 'var(--text)' : 'var(--rose)' }}>
+          {summary.balance < 0 ? '-' : ''}{formatBdt(Math.abs(summary.balance))}
         </p>
         <BudgetBar pct={summary.pct} />
-        <div className="flex gap-4 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex gap-4 mt-4 pt-4" style={{ borderTop: '1px solid rgba(108,126,150,0.12)' }}>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: 'var(--emerald-dim)' }}>
               <TrendingUp size={13} style={{ color: 'var(--emerald)' }} />
             </div>
             <div>
-              <p className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Income</p>
+              <p className="text-[10px] font-medium" style={{ color: 'var(--text-3)' }}>Income</p>
               <p className="text-sm font-semibold font-display" style={{ color: 'var(--emerald)' }}>{formatBdt(summary.income)}</p>
             </div>
           </div>
@@ -82,7 +80,7 @@ export default function DashboardPage() {
               <TrendingDown size={13} style={{ color: 'var(--rose)' }} />
             </div>
             <div>
-              <p className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Spent</p>
+              <p className="text-[10px] font-medium" style={{ color: 'var(--text-3)' }}>Spent</p>
               <p className="text-sm font-semibold font-display" style={{ color: 'var(--rose)' }}>{formatBdt(summary.expense)}</p>
             </div>
           </div>

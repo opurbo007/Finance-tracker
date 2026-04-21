@@ -9,7 +9,6 @@ import {
   type WealthAccount,
 } from "@/types";
 import { useData } from "@/components/DataProvider";
-import { cn } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -57,11 +56,7 @@ function WealthPicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl"
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-        }}
+        className="neo-panel w-full flex items-center justify-between px-3 py-2.5 rounded-xl"
       >
         <div className="flex items-center gap-2">
           <span>{selectedAccount ? selectedAccount.emoji : "🚫"}</span>
@@ -76,15 +71,17 @@ function WealthPicker({
       {/* Dropdown menu */}
       {open && (
         <div
-          className="absolute bottom-full mb-2 w-full rounded-xl shadow-lg overflow-hidden z-50"
+          className="absolute bottom-full mb-2 w-full rounded-xl overflow-hidden z-50"
           style={{
-            background: "rgba(20, 20, 24, 0.98)", // near-opaque dark surface
-            border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(12px)", // subtle glass, not weak transparency
+            background: "rgba(242, 246, 251, 0.96)",
+            border: "1px solid rgba(255,255,255,0.8)",
+            backdropFilter: "blur(12px)",
+            boxShadow: "var(--shadow-raised)",
           }}
         >
           <button
-            className="w-full text-left px-3 py-2 hover:bg-white/5"
+            className="w-full text-left px-3 py-2"
+            style={{ color: "var(--text)" }}
             onClick={() => {
               onSelect("");
               onEffectChange("none");
@@ -97,7 +94,8 @@ function WealthPicker({
           {nonDebts.map((acc) => (
             <button
               key={acc._id}
-              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5"
+              className="w-full flex items-center gap-2 px-3 py-2"
+              style={{ color: "var(--text)" }}
               onClick={() => {
                 onSelect(acc._id);
                 onEffectChange(type === "income" ? "add" : "deduct");
@@ -129,8 +127,10 @@ function WealthPicker({
                 className="flex-1 py-2 rounded-xl text-xs font-semibold"
                 style={{
                   background:
-                    effect === e ? "rgba(108,99,255,0.15)" : "var(--surface)",
+                    effect === e ? "rgba(63,124,255,0.14)" : "var(--surface)",
                   border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-soft)",
+                  color: effect === e ? "var(--accent-strong)" : "var(--text-2)",
                 }}
               >
                 {e}
@@ -369,10 +369,11 @@ export function AddTransactionSheet({ open, onClose, editTx }: Props) {
           style={{
             background:
               wealthEffect === "add"
-                ? "rgba(16,185,129,0.08)"
-                : "rgba(244,63,94,0.08)",
+                ? "rgba(15,157,122,0.08)"
+                : "rgba(224,91,116,0.08)",
             border: `1px solid ${wealthEffect === "add" ? "rgba(16,185,129,0.2)" : "rgba(244,63,94,0.2)"}`,
             color: wealthEffect === "add" ? "var(--emerald)" : "var(--rose)",
+            boxShadow: "var(--shadow-soft)",
           }}
         >
           {wealthEffect === "add"

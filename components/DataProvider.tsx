@@ -16,6 +16,7 @@ interface DataContextType {
   addWealthAccount:    (data: NewWealthAccount)                      => Promise<void>
   updateWealthAccount: (id: string, data: Partial<NewWealthAccount>) => Promise<void>
   deleteWealthAccount: (id: string)                                  => Promise<void>
+  transferWealth:      (fromId: string, toId: string, amount: number) => Promise<void>
   refresh:             ()                                            => Promise<void>
 }
 
@@ -118,11 +119,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setWealthAccounts(prev => prev.filter(a => a._id !== id))
   }
 
+  const transferWealth = async (fromId: string, toId: string, amount: number) => {
+    const accounts = await apiFetch<WealthAccount[]>('/api/wealth-accounts', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        action: 'transfer',
+        fromId,
+        toId,
+        amount,
+      }),
+    })
+    setWealthAccounts(accounts)
+  }
+
   return (
     <DataContext.Provider value={{
       transactions, wealthAccounts, loading,
       addTransaction, updateTransaction, deleteTransaction,
-      addWealthAccount, updateWealthAccount, deleteWealthAccount,
+      addWealthAccount, updateWealthAccount, deleteWealthAccount, transferWealth,
       refresh: fetchAll,
     }}>
       {children}

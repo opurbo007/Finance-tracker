@@ -41,8 +41,7 @@ export function BottomSheet({
           </h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full transition-colors"
-            style={{ background: "var(--surface-2)", color: "var(--text-2)" }}
+            className="icon-button w-10 h-10"
           >
             <X size={15} />
           </button>
@@ -86,15 +85,12 @@ export function ConfirmDialog({
       style={{ alignItems: "center" }}
     >
       <div
+        className="neo-panel"
         style={{
-          background: "#14141C",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: 20,
           padding: "24px 20px",
           width: "calc(100% - 48px)",
           maxWidth: 360,
-          animation: "confirmIn 0.22s cubic-bezier(0.32,0.72,0,1)",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.7)",
+          animation: "confirmIn 0.18s cubic-bezier(0.2,0.8,0.2,1)",
         }}
       >
         <style>{`
@@ -110,7 +106,7 @@ export function ConfirmDialog({
             width: 48,
             height: 48,
             borderRadius: 14,
-            background: "rgba(244,63,94,0.12)",
+            background: "rgba(224, 91, 116, 0.12)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -151,8 +147,8 @@ export function ConfirmDialog({
               flex: 1,
               padding: "12px",
               borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.1)",
-              background: "var(--surface-2)",
+              border: "1px solid rgba(255,255,255,0.7)",
+              background: "var(--surface)",
               color: "var(--text-2)",
               fontSize: 14,
               fontWeight: 600,
@@ -385,28 +381,20 @@ function ActionBtn({
     <button
       onClick={onClick}
       aria-label={label}
+      className="icon-button w-7 h-7"
       style={{
-        width: 24,
-        height: 24,
-        borderRadius: 6,
-        border: "none",
-        background: "transparent",
         color: "var(--text-3)",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        transition: "color 0.15s, background 0.15s",
+        transition: "color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease",
       }}
       onMouseEnter={(e) => {
         const el = e.currentTarget as HTMLButtonElement;
         el.style.color = color;
-        el.style.background = color + "18";
+        el.style.background = color + "14";
       }}
       onMouseLeave={(e) => {
         const el = e.currentTarget as HTMLButtonElement;
         el.style.color = "var(--text-3)";
-        el.style.background = "transparent";
+        el.style.background = "var(--surface)";
       }}
     >
       {icon}
@@ -436,7 +424,7 @@ export function WealthCard({
     <div className="wealth-row group">
       <div
         className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
-        style={{ background: "var(--surface-2)" }}
+        style={{ background: "var(--surface-2)", boxShadow: "var(--shadow-soft)" }}
       >
         {account.emoji}
       </div>
@@ -568,7 +556,7 @@ export function EmptyState({
     <div className="flex flex-col items-center py-14 text-center">
       <div
         className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-4"
-        style={{ background: "var(--surface-2)" }}
+        style={{ background: "var(--surface-2)", boxShadow: "var(--shadow-soft)" }}
       >
         {icon}
       </div>
