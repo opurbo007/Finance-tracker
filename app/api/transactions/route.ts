@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { TransactionModel, WealthAccountModel } from "@/lib/models";
 import { getAuthUserId } from "@/lib/get-auth-user";
-import type { Transaction } from "@/types";
+import type { Transaction, TransactionType } from "@/types";
 
 function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -13,7 +13,7 @@ function toTransaction(d: unknown): Transaction {
   return {
     _id: (doc["_id"] as { toString(): string }).toString(),
     userId: doc["userId"] as string,
-    type: doc["type"] as "expense" | "income",
+    type: doc["type"] as TransactionType,
     amount: doc["amount"] as number,
     description: doc["description"] as string,
     category: doc["category"] as string,
@@ -21,17 +21,12 @@ function toTransaction(d: unknown): Transaction {
     paymentMethod: doc["paymentMethod"] as string,
     date: doc["date"] as string,
     createdAt: doc["createdAt"] as number,
+    borrowDirection: (doc["borrowDirection"] as Transaction["borrowDirection"]) ?? undefined,
     linkedWealthId: (doc["linkedWealthId"] as string | null) ?? undefined,
-    wealthEffect:
-      (doc["wealthEffect"] as Transaction["wealthEffect"]) ?? "none",
+    wealthEffect: (doc["wealthEffect"] as Transaction["wealthEffect"]) ?? "none",
   };
 }
 
-/**
- * Atomically adjust a wealth account's balance.
- * delta > 0 → credit (add), delta < 0 → debit (subtract).
- * Skips if wealthId is missing or effect is 'none'.
- */
 async function adjustWealth(
   userId: string,
   wealthId: string | undefined | null,
@@ -61,16 +56,12 @@ export async function POST(req: Request): Promise<NextResponse> {
   const userId = await getAuthUserId();
   if (!userId) return unauthorized();
 
-  const body = (await req.json()) as Omit<
-    Transaction,
-    "_id" | "userId" | "createdAt"
-  >;
+  const body = (await req.json()) as Omit<Transaction, "_id" | "userId" | "createdAt">;
   await connectDB();
 
   const doc = await (TransactionModel as any).create({ ...body, userId });
   const tx = toTransaction(doc.toObject() as unknown);
 
-  // Adjust linked wealth account
   await adjustWealth(userId, tx.linkedWealthId, tx.wealthEffect, tx.amount);
 
   return NextResponse.json(tx);
@@ -85,7 +76,6 @@ export async function PATCH(req: Request): Promise<NextResponse> {
   >;
   await connectDB();
 
-  // Fetch the old tx so we can reverse its previous wealth effect before applying the new one
   const old = await (TransactionModel as any)
     .findOne({ _id: id, userId })
     .lean();
@@ -93,19 +83,9 @@ export async function PATCH(req: Request): Promise<NextResponse> {
 
   const oldTx = toTransaction(old);
 
-  // Reverse the old wealth effect
-  if (
-    oldTx.linkedWealthId &&
-    oldTx.wealthEffect &&
-    oldTx.wealthEffect !== "none"
-  ) {
+  if (oldTx.linkedWealthId && oldTx.wealthEffect && oldTx.wealthEffect !== "none") {
     const reverseEffect = oldTx.wealthEffect === "add" ? "deduct" : "add";
-    await adjustWealth(
-      userId,
-      oldTx.linkedWealthId,
-      reverseEffect,
-      oldTx.amount,
-    );
+    await adjustWealth(userId, oldTx.linkedWealthId, reverseEffect, oldTx.amount);
   }
 
   const doc = await (TransactionModel as any)
@@ -115,7 +95,6 @@ export async function PATCH(req: Request): Promise<NextResponse> {
 
   const tx = toTransaction(doc);
 
-  // Apply the new wealth effect
   await adjustWealth(userId, tx.linkedWealthId, tx.wealthEffect, tx.amount);
 
   return NextResponse.json(tx);
@@ -128,7 +107,6 @@ export async function DELETE(req: Request): Promise<NextResponse> {
   const { id } = (await req.json()) as { id: string };
   await connectDB();
 
-  // Reverse wealth effect before deleting
   const doc = await (TransactionModel as any)
     .findOne({ _id: id, userId })
     .lean();

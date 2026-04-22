@@ -7,6 +7,7 @@ import {
   Landmark,
   BarChart2,
   Plus,
+  Repeat,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddTransactionSheet } from "@/components/AddTransactionSheet";
@@ -15,6 +16,7 @@ import { AddWealthSheet } from "@/components/AddWealthSheet";
 const NAV = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/expenses", label: "Expenses", icon: Receipt },
+  { href: "/borrow", label: "Borrow", icon: Repeat },
   { href: "/wealth", label: "Wealth", icon: Landmark },
   { href: "/analytics", label: "Stats", icon: BarChart2 },
 ];

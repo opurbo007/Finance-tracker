@@ -444,7 +444,7 @@ body::after {
     width: 100%;
     max-width: 480px;
     border-radius: 34px 34px 0 0;
-    padding: 20px 20px 40px;
+    padding: 20px 20px calc(124px + env(safe-area-inset-bottom));
     z-index: 50;
     overflow-y: auto;
     max-height: 92dvh;
@@ -504,6 +504,12 @@ body::after {
     color: var(--emerald);
     box-shadow: var(--shadow-pressed);
     background: rgba(47, 224, 190, 0.08);
+  }
+
+  .type-toggle-btn.active-borrow {
+    color: var(--amber);
+    box-shadow: var(--shadow-pressed);
+    background: rgba(255, 200, 109, 0.08);
   }
 
   .icon-button {

@@ -11,7 +11,7 @@ export default function AnalyticsPage() {
   const dayOfMonth = new Date().getDate()
 
   const { income, expense, balance, dailyAvg, catStats } = useMemo(() => {
-    const monthly = transactions.filter(t => t.date.startsWith(month))
+    const monthly = transactions.filter(t => t.date.startsWith(month) && t.type !== 'borrow')
     const income  = monthly.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
     const expense = monthly.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
 

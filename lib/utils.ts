@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { format, isToday, isYesterday, parseISO } from 'date-fns'
+import type { Transaction } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -13,7 +14,7 @@ export function formatBdt(amount: number): string {
 export function formatDate(dateStr: string): string {
   try {
     const d = parseISO(dateStr)
-    if (isToday(d))     return 'Today'
+    if (isToday(d)) return 'Today'
     if (isYesterday(d)) return 'Yesterday'
     return format(d, 'd MMM')
   } catch {
@@ -34,4 +35,10 @@ export function greeting(): string {
   if (h < 12) return 'Good morning'
   if (h < 17) return 'Good afternoon'
   return 'Good evening'
+}
+
+export function transactionSignedAmount(tx: Transaction): number {
+  if (tx.type === 'income') return tx.amount
+  if (tx.type === 'expense') return -tx.amount
+  return tx.borrowDirection === 'borrowed' ? tx.amount : -tx.amount
 }

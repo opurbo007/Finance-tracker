@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { useData } from '@/components/DataProvider'
 import { TransactionItem, DateDivider, EmptyState, Spinner, ConfirmDialog } from '@/components/ui'
 import { AddTransactionSheet } from '@/components/AddTransactionSheet'
-import { formatDate } from '@/lib/utils'
+import { transactionSignedAmount } from '@/lib/utils'
 import type { Transaction } from '@/types'
 
 export default function ExpensesPage() {
@@ -47,7 +47,7 @@ export default function ExpensesPage() {
           : (
             <div className="pb-6">
               {grouped.map(([date, txs]) => {
-                const net = txs.reduce((s, t) => s + (t.type === 'income' ? t.amount : -t.amount), 0)
+                const net = txs.reduce((s, t) => s + transactionSignedAmount(t), 0)
                 return (
                   <div key={date}>
                     <DateDivider date={date} net={net} />
