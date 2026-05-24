@@ -1,35 +1,115 @@
 'use client'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { BadgeDollarSign, ChevronLeft, ShieldCheck, TrendingUp } from 'lucide-react'
 
-interface RegisterResponse {
+interface AuthResponse {
   success?: boolean
-  error?:   string
+  error?: string
+  message?: string
 }
+
+type AuthMode = 'login' | 'register' | 'forgot'
 
 export default function AuthPage() {
   const router = useRouter()
 
-  const [isLogin,  setIsLogin]  = useState(true)
-  const [email,    setEmail]    = useState('')
+  const [mode, setMode] = useState<AuthMode>('login')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error,    setError]    = useState('')
-  const [loading,  setLoading]  = useState(false)
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [resetToken, setResetToken] = useState('')
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const isLogin = mode === 'login'
+  const isRegister = mode === 'register'
+  const isForgot = mode === 'forgot'
+  const hasResetToken = isForgot && Boolean(resetToken)
+
+  useEffect(() => {
+    function applyResetTokenFromUrl() {
+      const token = new URLSearchParams(window.location.search).get('resetToken')
+      if (!token) return
+      setMode('forgot')
+      setResetToken(token)
+      setError('')
+      setNotice('')
+    }
+
+    applyResetTokenFromUrl()
+    window.addEventListener('popstate', applyResetTokenFromUrl)
+    window.addEventListener('focus', applyResetTokenFromUrl)
+    return () => {
+      window.removeEventListener('popstate', applyResetTokenFromUrl)
+      window.removeEventListener('focus', applyResetTokenFromUrl)
+    }
+  }, [])
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('resetToken')
+    if (!token || (mode === 'forgot' && resetToken === token)) return
+    setMode('forgot')
+    setResetToken(token)
+    setError('')
+    setNotice('')
+  }, [mode, resetToken])
+
+  function switchMode(nextMode: AuthMode) {
+    setMode(nextMode)
+    setError('')
+    setNotice('')
+    setPassword('')
+    setConfirmPassword('')
+    if (nextMode !== 'forgot') setResetToken('')
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
+    setNotice('')
+
+    if (hasResetToken && password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
     setLoading(true)
     try {
-      if (!isLogin) {
-        const res  = await fetch('/api/auth/register', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+      if (isForgot) {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            hasResetToken
+              ? { action: 'reset', token: resetToken, password }
+              : { action: 'request', email },
+          ),
+        })
+        const data = await res.json() as AuthResponse
+        if (!res.ok) { setError(data.error ?? 'Password reset failed'); return }
+        setNotice(data.message ?? (hasResetToken ? 'Password updated. You can sign in now.' : 'Reset link sent. Check your email.'))
+        if (!hasResetToken) return
+        window.history.replaceState(null, '', '/auth')
+        setMode('login')
+        setResetToken('')
+        setPassword('')
+        setConfirmPassword('')
+        return
+      }
+
+      if (isRegister) {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
         })
-        const data = await res.json() as RegisterResponse
+        const data = await res.json() as AuthResponse
         if (!res.ok) { setError(data.error ?? 'Registration failed'); return }
       }
+
       const result = await signIn('credentials', { email, password, redirect: false })
       if (result?.error) { setError('Invalid email or password'); return }
       router.push('/dashboard')
@@ -45,78 +125,101 @@ export default function AuthPage() {
       className="min-h-dvh flex flex-col items-center justify-center p-6 relative overflow-hidden"
       style={{ background: 'var(--bg)' }}
     >
-      {/* Background glow orbs */}
       <div
-        className="absolute pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          top: '-120px', left: '50%', transform: 'translateX(-50%)',
-          width: '400px', height: '400px',
-          background: 'radial-gradient(circle, rgba(108,99,255,0.18) 0%, transparent 70%)',
-        }}
-      />
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          bottom: '0', right: '-80px',
-          width: '300px', height: '300px',
-          background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle at 50% 0%, rgba(255,255,255,0.95), transparent 32rem)',
         }}
       />
 
       <div className="w-full max-w-sm relative z-10 animate-fade-up">
-
-        {/* Logo */}
         <div className="text-center mb-10">
           <div
-            className="w-20 h-20 rounded-3xl mx-auto mb-5 flex items-center justify-center text-3xl relative overflow-hidden"
+            className="w-24 h-24 rounded-[30px] mx-auto mb-5 flex items-center justify-center relative overflow-hidden"
             style={{
-              background: 'linear-gradient(135deg, #1a1040, #0d1a2e)',
-              border: '1px solid rgba(108,99,255,0.3)',
-              boxShadow: '0 8px 32px rgba(108,99,255,0.3)',
+              background: 'linear-gradient(145deg, #f8f8f8, #e7e7e7)',
+              border: '1px solid rgba(255,255,255,0.9)',
+              boxShadow: 'var(--shadow-raised)',
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icons/icon-192x192.png" alt="" width={80} height={80} className="rounded-3xl" />
+            <div
+              className="absolute inset-3 rounded-[24px]"
+              style={{ boxShadow: 'var(--shadow-pressed)' }}
+            />
+            <div
+              className="relative w-14 h-14 rounded-2xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(145deg, #ff6971, #ec4651)',
+                color: '#ffffff',
+                boxShadow: '5px 5px 12px rgba(205,72,79,0.28), -5px -5px 12px rgba(255,255,255,0.84)',
+              }}
+            >
+              <BadgeDollarSign size={28} strokeWidth={2.2} />
+            </div>
+            <div
+              className="absolute right-4 top-4 w-7 h-7 rounded-xl flex items-center justify-center"
+              style={{ background: 'var(--surface)', color: 'var(--emerald)', boxShadow: 'var(--shadow-soft)' }}
+            >
+              <TrendingUp size={15} strokeWidth={2.2} />
+            </div>
+            <div
+              className="absolute left-4 bottom-4 w-7 h-7 rounded-xl flex items-center justify-center"
+              style={{ background: 'var(--surface)', color: 'var(--accent)', boxShadow: 'var(--shadow-soft)' }}
+            >
+              <ShieldCheck size={14} strokeWidth={2.2} />
+            </div>
           </div>
+
           <h1
             className="text-3xl font-bold font-display mb-2"
             style={{ color: 'var(--text)' }}
           >
-            Finance
+            {isForgot ? 'Reset Password' : 'Finance'}
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-3)' }}>
-            Your money, beautifully tracked
+            {hasResetToken ? 'Create a new password for your account' : isForgot ? 'We will email you a secure reset link' : 'Your money, beautifully tracked'}
           </p>
         </div>
 
-        {/* Tab toggle */}
-        <div
-          className="flex rounded-2xl overflow-hidden mb-6 p-1"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-        >
-          {(['Login', 'Register'] as const).map((label, i) => {
-            const active = (i === 0) === isLogin
-            return (
-              <button
-                key={label}
-                type="button"
-                onClick={() => { setIsLogin(i === 0); setError('') }}
-                className="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all"
-                style={
-                  active
-                    ? {
-                        background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
-                        color: 'white',
-                        boxShadow: '0 2px 12px rgba(108,99,255,0.4)',
-                      }
-                    : { color: 'var(--text-3)' }
-                }
-              >
-                {label}
-              </button>
-            )
-          })}
-        </div>
+        {isForgot ? (
+          <button
+            type="button"
+            onClick={() => switchMode('login')}
+            className="secondary-action mb-6"
+          >
+            <ChevronLeft size={16} />
+            <span>Back to sign in</span>
+          </button>
+        ) : (
+          <div
+            className="flex rounded-2xl overflow-hidden mb-6 p-1"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-pressed)' }}
+          >
+            {(['Login', 'Register'] as const).map((label) => {
+              const nextMode: AuthMode = label === 'Login' ? 'login' : 'register'
+              const active = mode === nextMode
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => switchMode(nextMode)}
+                  className="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all"
+                  style={
+                    active
+                      ? {
+                          background: 'linear-gradient(145deg, #ff6971, #ec4651)',
+                          color: '#ffffff',
+                          boxShadow: 'var(--shadow-soft)',
+                        }
+                      : { color: 'var(--text-3)' }
+                  }
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3" noValidate>
           <div>
@@ -124,25 +227,68 @@ export default function AuthPage() {
               Email address
             </label>
             <input
-              id="email" type="email" required autoComplete="email"
+              id="email"
+              type="email"
+              required={!hasResetToken}
+              autoComplete="email"
               placeholder="you@example.com"
-              value={email} onChange={e => setEmail(e.target.value)}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="input-field"
+              disabled={hasResetToken}
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-3)' }}>
-              Password
-            </label>
-            <input
-              id="password" type="password" required minLength={6}
-              autoComplete={isLogin ? 'current-password' : 'new-password'}
-              placeholder="••••••••"
-              value={password} onChange={e => setPassword(e.target.value)}
-              className="input-field"
-            />
-          </div>
+          {(!isForgot || hasResetToken) && (
+            <div>
+              <label htmlFor="password" className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-3)' }}>
+                {hasResetToken ? 'New password' : 'Password'}
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                minLength={6}
+                autoComplete={isLogin ? 'current-password' : 'new-password'}
+                placeholder="********"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="input-field"
+              />
+            </div>
+          )}
+
+          {hasResetToken && (
+            <div>
+              <label htmlFor="confirm-password" className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-3)' }}>
+                Confirm password
+              </label>
+              <input
+                id="confirm-password"
+                type="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                placeholder="********"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                className="input-field"
+              />
+            </div>
+          )}
+
+          {isLogin && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => switchMode('forgot')}
+                className="text-xs font-semibold transition-colors"
+                style={{ color: 'var(--accent-strong)' }}
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
 
           {error && (
             <div
@@ -154,17 +300,27 @@ export default function AuthPage() {
             </div>
           )}
 
+          {notice && (
+            <div
+              role="status"
+              className="text-sm px-4 py-3 rounded-xl"
+              style={{ background: 'var(--emerald-dim)', color: 'var(--emerald)', border: '1px solid rgba(50,184,121,0.2)' }}
+            >
+              {notice}
+            </div>
+          )}
+
           <button
             type="submit"
-            disabled={loading || !email || !password}
+            disabled={loading || (hasResetToken ? !password || !confirmPassword : !email || (!isForgot && !password))}
             className="btn-primary mt-5"
           >
-            {loading ? 'Please wait…' : isLogin ? 'Sign in' : 'Create account'}
+            {loading ? 'Please wait...' : hasResetToken ? 'Update password' : isForgot ? 'Email reset link' : isLogin ? 'Sign in' : 'Create account'}
           </button>
         </form>
 
         <p className="text-center text-xs mt-6" style={{ color: 'var(--text-3)' }}>
-          Secured with MongoDB · Data encrypted at rest
+          Secured with MongoDB - Data encrypted at rest
         </p>
       </div>
     </div>

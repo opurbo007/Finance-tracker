@@ -10,8 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['Syne', 'system-ui', 'sans-serif'],
-        sans:    ['Outfit', 'system-ui', 'sans-serif'],
+        display: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans:    ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
         accent:   '#6C63FF',

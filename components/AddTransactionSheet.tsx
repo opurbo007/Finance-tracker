@@ -90,8 +90,8 @@ function WealthPicker({
         <div
           className="absolute bottom-full mb-2 w-full rounded-xl overflow-hidden z-50"
           style={{
-            background: "rgba(6, 7, 7, 0.96)",
-            border: "1px solid rgba(255,255,255,0.8)",
+            background: "rgba(246, 246, 246, 0.96)",
+            border: "1px solid rgba(255,255,255,0.88)",
             backdropFilter: "blur(12px)",
             boxShadow: "var(--shadow-raised)",
           }}
@@ -144,7 +144,7 @@ function WealthPicker({
                 className="flex-1 py-2 rounded-xl text-xs font-semibold"
                 style={{
                   background:
-                    effect === e ? "rgba(63,124,255,0.14)" : "var(--surface)",
+                    effect === e ? "var(--rose-dim)" : "var(--surface)",
                   border: "1px solid var(--border)",
                   boxShadow: "var(--shadow-soft)",
                   color:

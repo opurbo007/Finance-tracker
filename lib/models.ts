@@ -34,6 +34,8 @@ const WealthAccountSchema = new Schema({
 const UserSchema = new Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
+  resetPasswordToken: { type: String, default: null, index: true },
+  resetPasswordExpires: { type: Number, default: null },
   createdAt: { type: Number, default: () => Date.now() },
 })
 

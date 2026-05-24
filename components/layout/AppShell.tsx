@@ -46,15 +46,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
       >
         <div
-          className="absolute inset-0 rounded-t-3xl"
+          className="absolute inset-0"
           style={{
-            background: "rgba(18, 22, 52, 0.84)",
-            backdropFilter: "blur(18px)",
-            borderTop: "1px solid rgba(126,137,222,0.18)",
-            boxShadow:
-              "-10px -10px 24px rgba(45,51,103,0.42), 0 -8px 22px rgba(5,7,20,0.72)",
-            borderTopLeftRadius: 30,
-            borderTopRightRadius: 30,
+            background: "rgba(241,241,241,0.9)",
+            borderTop: "1px solid rgba(255,255,255,0.86)",
+            boxShadow: "0 -10px 24px rgba(185,185,185,0.46)",
+            backdropFilter: "blur(16px)",
           }}
         />
 
@@ -79,11 +76,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <button
         onClick={handleFab}
         aria-label="Add"
-        className="fab-button fixed bottom-[92px] right-4 z-40 w-14 h-14 rounded-full flex items-center justify-center text-white transition-transform active:scale-95 md:right-[calc(50%-216px)]"
+        className="fab-button fixed bottom-[92px] right-4 z-40 w-14 h-14 rounded-2xl flex items-center justify-center text-white transition-transform active:scale-95 md:right-[calc(50%-216px)]"
         style={{
-          background: "linear-gradient(145deg, var(--accent), var(--accent-2))",
-          boxShadow:
-            "0 18px 28px rgba(126,134,255,0.34), -8px -8px 16px rgba(58,66,130,0.24)",
+          background: "linear-gradient(145deg, #ff6971, #ec4651)",
+          boxShadow: "7px 7px 16px rgba(196,72,78,0.34), -7px -7px 16px rgba(255,255,255,0.92)",
+          color: "#ffffff",
         }}
       >
         <Plus size={24} strokeWidth={2.5} />
