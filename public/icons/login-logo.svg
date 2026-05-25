@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="outer" x1="96" y1="72" x2="416" y2="440" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8F8F8"/>
+      <stop offset="1" stop-color="#E7E7E7"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="184" y1="168" x2="328" y2="344" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6971"/>
+      <stop offset="1" stop-color="#EC4651"/>
+    </linearGradient>
+    <filter id="outer-shadow" x="44" y="44" width="424" height="424" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="18" dy="22" stdDeviation="22" flood-color="#C9CBD3" flood-opacity="0.65"/>
+      <feDropShadow dx="-14" dy="-14" stdDeviation="18" flood-color="#FFFFFF" flood-opacity="0.95"/>
+    </filter>
+    <filter id="inner-shadow" x="110" y="110" width="292" height="292" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="10" dy="10" stdDeviation="13" flood-color="#D0D2DA" flood-opacity="0.9"/>
+      <feDropShadow dx="-10" dy="-10" stdDeviation="13" flood-color="#FFFFFF" flood-opacity="0.95"/>
+    </filter>
+    <filter id="mark-shadow" x="148" y="148" width="216" height="216" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="10" dy="10" stdDeviation="12" flood-color="#CD484F" flood-opacity="0.32"/>
+      <feDropShadow dx="-9" dy="-9" stdDeviation="12" flood-color="#FFFFFF" flood-opacity="0.9"/>
+    </filter>
+    <filter id="badge-shadow" x="0" y="0" width="512" height="512" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="5" dy="7" stdDeviation="8" flood-color="#C9CBD3" flood-opacity="0.42"/>
+      <feDropShadow dx="-4" dy="-4" stdDeviation="7" flood-color="#FFFFFF" flood-opacity="0.92"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="144" fill="#F0F1F4"/>
+  <rect x="72" y="72" width="368" height="368" rx="118" fill="url(#outer)" stroke="rgba(255,255,255,0.9)" stroke-width="4" filter="url(#outer-shadow)"/>
+  <rect x="118" y="118" width="276" height="276" rx="88" fill="none" stroke="#DBDDE4" stroke-width="16" opacity="0.8" filter="url(#inner-shadow)"/>
+
+  <rect x="184" y="184" width="144" height="144" rx="44" fill="url(#mark)" filter="url(#mark-shadow)"/>
+  <g transform="translate(216 216) scale(3.35)" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2">
+    <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
+    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+    <path d="M12 18V6"/>
+  </g>
+
+  <rect x="304" y="118" width="80" height="80" rx="30" fill="#F8F8F8" filter="url(#badge-shadow)"/>
+  <g transform="translate(320 134) scale(2)" fill="none" stroke="#32B879" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2">
+    <path d="m22 7-8.5 8.5-5-5L2 17"/>
+    <path d="M16 7h6v6"/>
+  </g>
+
+  <rect x="128" y="314" width="80" height="80" rx="30" fill="#F8F8F8" filter="url(#badge-shadow)"/>
+  <g transform="translate(143 329) scale(2.05)" fill="none" stroke="#6F7CF6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2">
+    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.68-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+    <path d="m9 12 2 2 4-4"/>
+  </g>
+</svg>

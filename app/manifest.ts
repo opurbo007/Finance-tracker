@@ -1,6 +1,12 @@
 import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
+  const shortcutIcon = {
+    src: "/icons/login-logo-96x96.png",
+    sizes: "96x96",
+    type: "image/png",
+  };
+
   return {
     // Identity
     id: "/",
@@ -32,70 +38,82 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Home",
         url: "/dashboard",
         description: "View your financial summary",
-        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
+        icons: [shortcutIcon],
       },
       {
         name: "Add Expense",
         short_name: "Expense",
         url: "/expenses",
         description: "Log a new expense",
-        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
+        icons: [shortcutIcon],
       },
       {
         name: "Wealth",
         short_name: "Wealth",
         url: "/wealth",
         description: "View net worth and accounts",
-        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
+        icons: [shortcutIcon],
       },
     ],
 
     // Icons — both maskable (safe zone) and any (full-bleed)
     icons: [
       {
-        src: "/icons/icon-72x72.png",
+        src: "/icons/login-logo-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/login-logo-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/login-logo-72x72.png",
         sizes: "72x72",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icons/icon-96x96.png",
+        src: "/icons/login-logo-96x96.png",
         sizes: "96x96",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icons/icon-128x128.png",
+        src: "/icons/login-logo-128x128.png",
         sizes: "128x128",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icons/icon-144x144.png",
+        src: "/icons/login-logo-144x144.png",
         sizes: "144x144",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icons/icon-152x152.png",
+        src: "/icons/login-logo-152x152.png",
         sizes: "152x152",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icons/icon-192x192.png",
+        src: "/icons/login-logo-192x192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icons/icon-384x384.png",
+        src: "/icons/login-logo-384x384.png",
         sizes: "384x384",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icons/icon-512x512.png",
+        src: "/icons/login-logo-512x512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
