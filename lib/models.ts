@@ -27,6 +27,7 @@ const WealthAccountSchema = new Schema({
   badgeLabel: { type: String, default: 'Liquid' },
   amount: { type: Number, required: true },
   isDebt: { type: Boolean, default: false },
+  isHidden: { type: Boolean, default: false },
   notes: { type: String, default: '' },
   createdAt: { type: Number, default: () => Date.now() },
 })

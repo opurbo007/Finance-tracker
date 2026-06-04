@@ -1,6 +1,6 @@
 "use client";
 import { type ReactNode, useEffect } from "react";
-import { X, Trash2, Pencil } from "lucide-react";
+import { X, Trash2, Pencil, Eye, EyeOff } from "lucide-react";
 import { cn, formatBdt, formatDate, transactionSignedAmount } from "@/lib/utils";
 import { CAT_COLORS, type Transaction, type WealthAccount } from "@/types";
 
@@ -363,13 +363,15 @@ export function WealthCard({
   account,
   onEdit,
   onDelete,
+  onToggleHidden,
 }: {
   account: WealthAccount;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleHidden?: () => void;
 }) {
   return (
-    <div className="wealth-row group">
+    <div className={cn("wealth-row group", account.isHidden && "opacity-60")}>
       <div
         className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
         style={{ background: "var(--surface-2)", boxShadow: "var(--shadow-soft)" }}
@@ -385,7 +387,7 @@ export function WealthCard({
           {account.notes ? ` · ${account.notes}` : ""}
         </p>
         <span className={cn("badge mt-1.5 inline-block", BADGE_CLASSES[account.badgeType] ?? "badge-liquid")}>
-          {account.badgeLabel}
+          {account.isHidden ? "Hidden" : account.badgeLabel}
         </span>
       </div>
       <div className="flex items-center gap-1 flex-shrink-0">
@@ -396,7 +398,15 @@ export function WealthCard({
           {account.isDebt ? "−" : ""}
           {formatBdt(account.amount)}
         </span>
-        <div className="flex flex-col gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex flex-col gap-0.5 ml-1 opacity-100 transition-opacity">
+          {onToggleHidden && (
+            <ActionBtn
+              icon={account.isHidden ? <Eye size={11} /> : <EyeOff size={11} />}
+              onClick={onToggleHidden}
+              color="var(--amber)"
+              label={account.isHidden ? "Show in total" : "Hide from total"}
+            />
+          )}
           <ActionBtn icon={<Pencil size={11} />} onClick={onEdit} color="var(--accent)" label="Edit" />
           <ActionBtn icon={<Trash2 size={11} />} onClick={onDelete} color="var(--rose)" label="Delete" />
         </div>

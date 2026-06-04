@@ -9,7 +9,7 @@ import { formatBdt } from '@/lib/utils'
 import type { WealthAccount } from '@/types'
 
 export default function WealthPage() {
-  const { wealthAccounts, loading, deleteWealthAccount } = useData()
+  const { wealthAccounts, loading, deleteWealthAccount, updateWealthAccount } = useData()
 
   const [editAccount,  setEditAccount]  = useState<WealthAccount | null>(null)
   const [deleteAccount, setDeleteAccount] = useState<WealthAccount | null>(null)
@@ -17,8 +17,9 @@ export default function WealthPage() {
   const [deleting,     setDeleting]     = useState(false)
 
   const { assets, liabilities, netWorth } = useMemo(() => {
-    const a = wealthAccounts.filter(w => !w.isDebt).reduce((s, w) => s + w.amount, 0)
-    const l = wealthAccounts.filter(w =>  w.isDebt).reduce((s, w) => s + w.amount, 0)
+    const visibleAccounts = wealthAccounts.filter(w => !w.isHidden)
+    const a = visibleAccounts.filter(w => !w.isDebt).reduce((s, w) => s + w.amount, 0)
+    const l = visibleAccounts.filter(w =>  w.isDebt).reduce((s, w) => s + w.amount, 0)
     return { assets: a, liabilities: l, netWorth: a - l }
   }, [wealthAccounts])
 
@@ -36,6 +37,10 @@ export default function WealthPage() {
       setDeleting(false)
       setDeleteAccount(null)
     }
+  }
+
+  async function toggleAccountVisibility(account: WealthAccount) {
+    await updateWealthAccount(account._id, { isHidden: !account.isHidden })
   }
 
   return (
@@ -76,7 +81,9 @@ export default function WealthPage() {
           </div>
           <div>
             <p className="text-[10px] font-medium mb-1" style={{ color: 'var(--text-3)' }}>Accounts</p>
-            <p className="text-sm font-bold font-display" style={{ color: 'var(--text-2)' }}>{wealthAccounts.length}</p>
+            <p className="text-sm font-bold font-display" style={{ color: 'var(--text-2)' }}>
+              {wealthAccounts.filter(w => !w.isHidden).length}/{wealthAccounts.length}
+            </p>
           </div>
         </div>
       </div>
@@ -101,6 +108,7 @@ export default function WealthPage() {
                 <div className="space-y-2">
                   {nonDebts.map(acc => (
                     <WealthCard key={acc._id} account={acc}
+                      onToggleHidden={() => toggleAccountVisibility(acc)}
                       onEdit={() => setEditAccount(acc)}
                       onDelete={() => setDeleteAccount(acc)} />
                   ))}
@@ -113,6 +121,7 @@ export default function WealthPage() {
                 <div className="space-y-2">
                   {debts.map(acc => (
                     <WealthCard key={acc._id} account={acc}
+                      onToggleHidden={() => toggleAccountVisibility(acc)}
                       onEdit={() => setEditAccount(acc)}
                       onDelete={() => setDeleteAccount(acc)} />
                   ))}

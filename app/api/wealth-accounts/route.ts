@@ -21,6 +21,7 @@ function toWealthAccount(d: unknown): WealthAccount {
     badgeLabel: doc["badgeLabel"] as string,
     amount: doc["amount"] as number,
     isDebt: doc["isDebt"] as boolean,
+    isHidden: (doc["isHidden"] as boolean) ?? false,
     notes: (doc["notes"] as string) ?? "",
     createdAt: doc["createdAt"] as number,
   };

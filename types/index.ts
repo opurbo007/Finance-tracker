@@ -40,6 +40,7 @@ export interface WealthAccount {
   badgeLabel: string
   amount: number
   isDebt: boolean
+  isHidden?: boolean
   notes: string
   createdAt: number
 }

@@ -1,19 +1,55 @@
 'use client'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useData } from '@/components/DataProvider'
 import { MetricTile, SectionLabel, EmptyState, Spinner } from '@/components/ui'
 import { formatBdt, currentMonth } from '@/lib/utils'
 import { CAT_COLORS, ALL_CATEGORIES } from '@/types'
 
+function monthLabel(month: string, format: 'long' | 'short' = 'long') {
+  const [year, monthIndex] = month.split('-').map(Number)
+  return new Date(year ?? 0, (monthIndex ?? 1) - 1, 1).toLocaleDateString('en-GB', {
+    month: format,
+    year: 'numeric',
+  })
+}
+
+function shiftMonth(month: string, offset: number) {
+  const [year, monthIndex] = month.split('-').map(Number)
+  const date = new Date(year ?? 0, (monthIndex ?? 1) - 1 + offset, 1)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+function daysForAverage(month: string) {
+  const [year, monthIndex] = month.split('-').map(Number)
+  if (month === currentMonth()) return new Date().getDate()
+  return new Date(year ?? 0, monthIndex ?? 1, 0).getDate()
+}
+
 export default function AnalyticsPage() {
   const { transactions, loading } = useData()
-  const month      = currentMonth()
-  const dayOfMonth = new Date().getDate()
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth())
+
+  const monthOptions = useMemo(() => {
+    const months = new Set(transactions.map(t => t.date.slice(0, 7)))
+    months.add(currentMonth())
+    return Array.from(months).sort((a, b) => b.localeCompare(a))
+  }, [transactions])
+
+  const monthlyHistory = useMemo(() => {
+    return monthOptions.map(month => {
+      const monthly = transactions.filter(t => t.date.startsWith(month) && t.type !== 'borrow')
+      const income = monthly.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+      const expense = monthly.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+      return { month, income, expense, balance: income - expense }
+    }).filter(report => report.income > 0 || report.expense > 0)
+  }, [transactions, monthOptions])
 
   const { income, expense, balance, dailyAvg, catStats } = useMemo(() => {
-    const monthly = transactions.filter(t => t.date.startsWith(month) && t.type !== 'borrow')
+    const monthly = transactions.filter(t => t.date.startsWith(selectedMonth) && t.type !== 'borrow')
     const income  = monthly.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
     const expense = monthly.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+    const avgDays = daysForAverage(selectedMonth)
 
     const catMap: Record<string, { label: string; emoji: string; total: number; color: string }> = {}
     for (const t of monthly.filter(x => x.type === 'expense')) {
@@ -34,26 +70,61 @@ export default function AnalyticsPage() {
 
     return {
       income, expense,
-      balance:  income - expense,
-      dailyAvg: dayOfMonth > 0 ? expense / dayOfMonth : 0,
+      balance: income - expense,
+      dailyAvg: avgDays > 0 ? expense / avgDays : 0,
       catStats,
     }
-  }, [transactions, month, dayOfMonth])
+  }, [transactions, selectedMonth])
 
   const maxCat = catStats[0]?.total ?? 1
-  const monthName = new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+  const monthName = monthLabel(selectedMonth)
+  const oldestMonth = monthOptions[monthOptions.length - 1] ?? selectedMonth
+  const newestMonth = monthOptions[0] ?? selectedMonth
+  const previousMonth = shiftMonth(selectedMonth, -1)
+  const nextMonth = shiftMonth(selectedMonth, 1)
+  const canGoPrevious = previousMonth >= oldestMonth
+  const canGoNext = nextMonth <= newestMonth
 
   return (
     <div className="px-4 pt-safe">
-      {/* Header */}
       <div className="py-5">
-        <p className="text-[13px] mb-0.5" style={{ color: 'var(--text-3)' }}>{monthName}</p>
+        <p className="text-[13px] mb-0.5" style={{ color: 'var(--text-3)' }}>Reports</p>
         <h1 className="text-2xl font-bold font-display" style={{ color: 'var(--text)' }}>
           Analytics
         </h1>
       </div>
 
-      {/* 2×2 metric grid */}
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          type="button"
+          aria-label="Previous month"
+          onClick={() => setSelectedMonth(previousMonth)}
+          disabled={!canGoPrevious}
+          className="icon-button w-10 h-10 disabled:opacity-40"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <select
+          value={selectedMonth}
+          onChange={e => setSelectedMonth(e.target.value)}
+          className="input-field h-11 py-0"
+          aria-label="Report month"
+        >
+          {monthOptions.map(month => (
+            <option key={month} value={month}>{monthLabel(month)}</option>
+          ))}
+        </select>
+        <button
+          type="button"
+          aria-label="Next month"
+          onClick={() => setSelectedMonth(nextMonth)}
+          disabled={!canGoNext}
+          className="icon-button w-10 h-10 disabled:opacity-40"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 mb-2">
         <MetricTile
           label="Spent"
@@ -81,17 +152,16 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      {/* Category breakdown */}
-      <SectionLabel>Spending by category</SectionLabel>
+      <SectionLabel>{monthName} spending</SectionLabel>
 
       {loading ? (
         <Spinner />
       ) : catStats.length === 0 ? (
-        <EmptyState icon="📊" message="No expenses this month yet." />
+        <EmptyState icon="ðŸ“Š" message="No expenses found for this month." />
       ) : (
-        <div className="space-y-3 pb-6">
+        <div className="space-y-3">
           {catStats.map((stat, i) => {
-            const pct     = Math.round((stat.total / maxCat) * 100)
+            const pct = Math.round((stat.total / maxCat) * 100)
             const sharePct = expense > 0 ? Math.round((stat.total / expense) * 100) : 0
             return (
               <div
@@ -117,7 +187,6 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
                 </div>
-                {/* Bar */}
                 <div className="flex items-center gap-2">
                   <div
                     className="flex-1 h-1.5 rounded-full overflow-hidden"
@@ -135,6 +204,46 @@ export default function AnalyticsPage() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      <SectionLabel>Monthly history</SectionLabel>
+
+      {loading ? (
+        <Spinner />
+      ) : monthlyHistory.length === 0 ? (
+        <EmptyState icon="ðŸ“‹" message="Previous month reports will appear here." />
+      ) : (
+        <div className="space-y-2 pb-6">
+          {monthlyHistory.map(report => (
+            <button
+              key={report.month}
+              type="button"
+              onClick={() => setSelectedMonth(report.month)}
+              className="card p-3 w-full text-left"
+              style={{
+                borderColor: report.month === selectedMonth ? 'var(--accent)' : undefined,
+                boxShadow: report.month === selectedMonth ? '0 0 0 1px var(--accent)' : undefined,
+              }}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold font-display" style={{ color: 'var(--text)' }}>
+                    {monthLabel(report.month, 'short')}
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
+                    Income {formatBdt(report.income)} Â· Spent {formatBdt(report.expense)}
+                  </p>
+                </div>
+                <p
+                  className="text-sm font-bold font-display flex-shrink-0"
+                  style={{ color: report.balance >= 0 ? 'var(--emerald)' : 'var(--rose)' }}
+                >
+                  {report.balance >= 0 ? '+' : '-'}{formatBdt(Math.abs(report.balance))}
+                </p>
+              </div>
+            </button>
+          ))}
         </div>
       )}
     </div>
