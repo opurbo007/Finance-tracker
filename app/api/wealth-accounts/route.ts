@@ -87,15 +87,15 @@ export async function PATCH(req: Request): Promise<NextResponse> {
       if (!from || !to) {
         throw new Error("Account not found");
       }
-      if (from.isDebt || to.isDebt) {
-        throw new Error("Transfers are only available between asset accounts");
+      if (from.isDebt || to.isDebt || from.isHidden || to.isHidden) {
+        throw new Error("Transfers are only available between visible asset accounts");
       }
       if (from.amount < amount) {
         throw new Error("Transfer amount exceeds the source balance");
       }
 
       const deducted = await (WealthAccountModel as any).findOneAndUpdate(
-        { _id: fromId, userId, isDebt: false, amount: { $gte: amount } },
+        { _id: fromId, userId, isDebt: false, isHidden: false, amount: { $gte: amount } },
         { $inc: { amount: -amount } },
         { new: true },
       );
@@ -105,14 +105,14 @@ export async function PATCH(req: Request): Promise<NextResponse> {
       }
 
       const credited = await (WealthAccountModel as any).findOneAndUpdate(
-        { _id: toId, userId, isDebt: false },
+        { _id: toId, userId, isDebt: false, isHidden: false },
         { $inc: { amount } },
         { new: true },
       );
 
       if (!credited) {
         await (WealthAccountModel as any).findOneAndUpdate(
-          { _id: fromId, userId, isDebt: false },
+          { _id: fromId, userId, isDebt: false, isHidden: false },
           { $inc: { amount } },
         );
         throw new Error("Destination account not found");

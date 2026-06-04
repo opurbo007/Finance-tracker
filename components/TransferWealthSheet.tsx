@@ -12,7 +12,10 @@ interface Props {
 
 export function TransferWealthSheet({ open, onClose }: Props) {
   const { wealthAccounts, transferWealth } = useData()
-  const assetAccounts = useMemo(() => wealthAccounts.filter(account => !account.isDebt), [wealthAccounts])
+  const assetAccounts = useMemo(
+    () => wealthAccounts.filter(account => !account.isDebt && !account.isHidden),
+    [wealthAccounts],
+  )
 
   const [fromId, setFromId] = useState('')
   const [toId, setToId] = useState('')

@@ -23,8 +23,10 @@ export default function WealthPage() {
     return { assets: a, liabilities: l, netWorth: a - l }
   }, [wealthAccounts])
 
-  const nonDebts = wealthAccounts.filter(w => !w.isDebt)
-  const debts    = wealthAccounts.filter(w =>  w.isDebt)
+  const visibleAccounts = wealthAccounts.filter(w => !w.isHidden)
+  const archivedAccounts = wealthAccounts.filter(w => w.isHidden)
+  const nonDebts = visibleAccounts.filter(w => !w.isDebt)
+  const debts    = visibleAccounts.filter(w =>  w.isDebt)
   const total    = assets + liabilities
   const assetPct = total > 0 ? (assets / total) * 100 : 50
 
@@ -82,7 +84,7 @@ export default function WealthPage() {
           <div>
             <p className="text-[10px] font-medium mb-1" style={{ color: 'var(--text-3)' }}>Accounts</p>
             <p className="text-sm font-bold font-display" style={{ color: 'var(--text-2)' }}>
-              {wealthAccounts.filter(w => !w.isHidden).length}/{wealthAccounts.length}
+              {visibleAccounts.length}/{wealthAccounts.length}
             </p>
           </div>
         </div>
@@ -120,6 +122,19 @@ export default function WealthPage() {
                 <SectionLabel>Debts &amp; Liabilities</SectionLabel>
                 <div className="space-y-2">
                   {debts.map(acc => (
+                    <WealthCard key={acc._id} account={acc}
+                      onToggleHidden={() => toggleAccountVisibility(acc)}
+                      onEdit={() => setEditAccount(acc)}
+                      onDelete={() => setDeleteAccount(acc)} />
+                  ))}
+                </div>
+              </>
+            )}
+            {archivedAccounts.length > 0 && (
+              <>
+                <SectionLabel>Archive</SectionLabel>
+                <div className="space-y-2">
+                  {archivedAccounts.map(acc => (
                     <WealthCard key={acc._id} account={acc}
                       onToggleHidden={() => toggleAccountVisibility(acc)}
                       onEdit={() => setEditAccount(acc)}
