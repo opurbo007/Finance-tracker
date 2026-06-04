@@ -1,93 +1,182 @@
-'use client'
-import { useMemo, useState } from 'react'
-import { ArrowRightLeft } from 'lucide-react'
-import { useData } from '@/components/DataProvider'
-import { WealthCard, SectionLabel, EmptyState, Spinner, ConfirmDialog } from '@/components/ui'
-import { AddWealthSheet } from '@/components/AddWealthSheet'
-import { TransferWealthSheet } from '@/components/TransferWealthSheet'
-import { formatBdt } from '@/lib/utils'
-import type { WealthAccount } from '@/types'
+"use client";
+import { useMemo, useState } from "react";
+import { ArrowRightLeft } from "lucide-react";
+import { useData } from "@/components/DataProvider";
+import {
+  WealthCard,
+  SectionLabel,
+  EmptyState,
+  Spinner,
+  ConfirmDialog,
+} from "@/components/ui";
+import { AddWealthSheet } from "@/components/AddWealthSheet";
+import { TransferWealthSheet } from "@/components/TransferWealthSheet";
+import { formatBdt } from "@/lib/utils";
+import type { WealthAccount } from "@/types";
 
 export default function WealthPage() {
-  const { wealthAccounts, loading, deleteWealthAccount, updateWealthAccount } = useData()
+  const { wealthAccounts, loading, deleteWealthAccount, updateWealthAccount } =
+    useData();
 
-  const [editAccount,  setEditAccount]  = useState<WealthAccount | null>(null)
-  const [deleteAccount, setDeleteAccount] = useState<WealthAccount | null>(null)
-  const [showTransfer, setShowTransfer] = useState(false)
-  const [deleting,     setDeleting]     = useState(false)
+  const [editAccount, setEditAccount] = useState<WealthAccount | null>(null);
+  const [deleteAccount, setDeleteAccount] = useState<WealthAccount | null>(
+    null,
+  );
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"hot" | "cold">("hot");
 
   const { assets, liabilities, netWorth } = useMemo(() => {
-    const visibleAccounts = wealthAccounts.filter(w => !w.isHidden)
-    const a = visibleAccounts.filter(w => !w.isDebt).reduce((s, w) => s + w.amount, 0)
-    const l = visibleAccounts.filter(w =>  w.isDebt).reduce((s, w) => s + w.amount, 0)
-    return { assets: a, liabilities: l, netWorth: a - l }
-  }, [wealthAccounts])
+    const visibleAccounts = wealthAccounts.filter((w) => !w.isHidden);
+    const a = visibleAccounts
+      .filter((w) => !w.isDebt)
+      .reduce((s, w) => s + w.amount, 0);
+    const l = visibleAccounts
+      .filter((w) => w.isDebt)
+      .reduce((s, w) => s + w.amount, 0);
+    return { assets: a, liabilities: l, netWorth: a - l };
+  }, [wealthAccounts]);
 
-  const visibleAccounts = wealthAccounts.filter(w => !w.isHidden)
-  const archivedAccounts = wealthAccounts.filter(w => w.isHidden)
-  const nonDebts = visibleAccounts.filter(w => !w.isDebt)
-  const debts    = visibleAccounts.filter(w =>  w.isDebt)
-  const total    = assets + liabilities
-  const assetPct = total > 0 ? (assets / total) * 100 : 50
+  const visibleAccounts = wealthAccounts.filter((w) => !w.isHidden);
+  const archivedAccounts = wealthAccounts.filter((w) => w.isHidden);
+  const nonDebts = visibleAccounts.filter((w) => !w.isDebt);
+  const debts = visibleAccounts.filter((w) => w.isDebt);
+  const total = assets + liabilities;
+  const assetPct = total > 0 ? (assets / total) * 100 : 50;
 
   async function handleConfirmDelete() {
-    if (!deleteAccount) return
-    setDeleting(true)
+    if (!deleteAccount) return;
+    setDeleting(true);
     try {
-      await deleteWealthAccount(deleteAccount._id)
+      await deleteWealthAccount(deleteAccount._id);
     } finally {
-      setDeleting(false)
-      setDeleteAccount(null)
+      setDeleting(false);
+      setDeleteAccount(null);
     }
   }
 
   async function toggleAccountVisibility(account: WealthAccount) {
-    await updateWealthAccount(account._id, { isHidden: !account.isHidden })
+    await updateWealthAccount(account._id, { isHidden: !account.isHidden });
   }
 
   return (
     <div className="px-4 pt-safe">
       <div className="py-5">
-        <p className="text-[13px] mb-0.5" style={{ color: 'var(--text-3)' }}>Portfolio</p>
-        <h1 className="text-2xl font-bold font-display" style={{ color: 'var(--text)' }}>Wealth</h1>
+        <p className="text-[13px] mb-0.5" style={{ color: "var(--text-3)" }}>
+          Portfolio
+        </p>
+        <h1
+          className="text-2xl font-bold font-display"
+          style={{ color: "var(--text)" }}
+        >
+          Wealth
+        </h1>
       </div>
 
       {/* Net worth hero */}
       <div className="hero-card p-5 mb-4">
-        <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-3)' }}>
+        <p
+          className="text-[11px] font-bold uppercase tracking-widest mb-2"
+          style={{ color: "var(--text-3)" }}
+        >
           Net Worth
         </p>
-        <p className="text-4xl font-bold font-display mb-4 relative z-10"
-          style={{ color: netWorth < 0 ? 'var(--rose)' : 'var(--text)' }}>
-          {netWorth < 0 ? '-' : ''}{formatBdt(Math.abs(netWorth))}
+        <p
+          className="text-4xl font-bold font-display mb-4 relative z-10"
+          style={{ color: netWorth < 0 ? "var(--rose)" : "var(--text)" }}
+        >
+          {netWorth < 0 ? "-" : ""}
+          {formatBdt(Math.abs(netWorth))}
         </p>
 
         {total > 0 && (
           <div className="mb-4">
-            <div className="flex rounded-full overflow-hidden h-2" style={{ background: 'rgba(108,126,150,0.12)' }}>
-              <div className="h-full transition-all duration-300"
-                style={{ width: `${assetPct}%`, background: 'var(--emerald)' }} />
-              <div className="flex-1 h-full" style={{ background: 'var(--rose)' }} />
+            <div
+              className="flex rounded-full overflow-hidden h-2"
+              style={{ background: "rgba(108,126,150,0.12)" }}
+            >
+              <div
+                className="h-full transition-all duration-300"
+                style={{ width: `${assetPct}%`, background: "var(--emerald)" }}
+              />
+              <div
+                className="flex-1 h-full"
+                style={{ background: "var(--rose)" }}
+              />
             </div>
           </div>
         )}
 
-        <div className="flex gap-6 pt-4" style={{ borderTop: '1px solid rgba(108,126,150,0.12)' }}>
+        <div
+          className="flex gap-6 pt-4"
+          style={{ borderTop: "1px solid rgba(108,126,150,0.12)" }}
+        >
           <div>
-            <p className="text-[10px] font-medium mb-1" style={{ color: 'var(--text-3)' }}>Assets</p>
-            <p className="text-sm font-bold font-display" style={{ color: 'var(--emerald)' }}>{formatBdt(assets)}</p>
+            <p
+              className="text-[10px] font-medium mb-1"
+              style={{ color: "var(--text-3)" }}
+            >
+              Assets
+            </p>
+            <p
+              className="text-sm font-bold font-display"
+              style={{ color: "var(--emerald)" }}
+            >
+              {formatBdt(assets)}
+            </p>
           </div>
           <div>
-            <p className="text-[10px] font-medium mb-1" style={{ color: 'var(--text-3)' }}>Liabilities</p>
-            <p className="text-sm font-bold font-display" style={{ color: 'var(--rose)' }}>{formatBdt(liabilities)}</p>
+            <p
+              className="text-[10px] font-medium mb-1"
+              style={{ color: "var(--text-3)" }}
+            >
+              Liabilities
+            </p>
+            <p
+              className="text-sm font-bold font-display"
+              style={{ color: "var(--rose)" }}
+            >
+              {formatBdt(liabilities)}
+            </p>
           </div>
           <div>
-            <p className="text-[10px] font-medium mb-1" style={{ color: 'var(--text-3)' }}>Accounts</p>
-            <p className="text-sm font-bold font-display" style={{ color: 'var(--text-2)' }}>
+            <p
+              className="text-[10px] font-medium mb-1"
+              style={{ color: "var(--text-3)" }}
+            >
+              Accounts
+            </p>
+            <p
+              className="text-sm font-bold font-display"
+              style={{ color: "var(--text-2)" }}
+            >
               {visibleAccounts.length}/{wealthAccounts.length}
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Tab selector */}
+      <div className="flex space-x-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setActiveTab("hot")}
+          className="px-4 py-2 rounded"
+          style={{
+            background:
+              activeTab === "hot" ? "var(--emerald)" : "var(--gray-200)",
+            color: activeTab === "hot" ? "white" : "inherit",
+          }}
+        >
+          Hot (Unhidden)
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("cold")}
+          className={`px-4 py-2 rounded ${activeTab === "cold" ? "bg-var(--rose) text-white" : "bg-gray-200"}`}
+        >
+          Cold (Hidden)
+        </button>
       </div>
 
       <button
@@ -100,52 +189,73 @@ export default function WealthPage() {
         <span>Transfer wealth with custom amount</span>
       </button>
 
-      {loading ? <Spinner /> : wealthAccounts.length === 0
-        ? <EmptyState icon="🏦" message="No accounts yet. Tap + to add your bank, savings, or assets." />
-        : (
-          <>
-            {nonDebts.length > 0 && (
-              <>
-                <SectionLabel>Accounts &amp; Assets</SectionLabel>
-                <div className="space-y-2">
-                  {nonDebts.map(acc => (
-                    <WealthCard key={acc._id} account={acc}
-                      onToggleHidden={() => toggleAccountVisibility(acc)}
-                      onEdit={() => setEditAccount(acc)}
-                      onDelete={() => setDeleteAccount(acc)} />
-                  ))}
-                </div>
-              </>
-            )}
-            {debts.length > 0 && (
-              <>
-                <SectionLabel>Debts &amp; Liabilities</SectionLabel>
-                <div className="space-y-2">
-                  {debts.map(acc => (
-                    <WealthCard key={acc._id} account={acc}
-                      onToggleHidden={() => toggleAccountVisibility(acc)}
-                      onEdit={() => setEditAccount(acc)}
-                      onDelete={() => setDeleteAccount(acc)} />
-                  ))}
-                </div>
-              </>
-            )}
-            {archivedAccounts.length > 0 && (
-              <>
-                <SectionLabel>Archive</SectionLabel>
-                <div className="space-y-2">
-                  {archivedAccounts.map(acc => (
-                    <WealthCard key={acc._id} account={acc}
-                      onToggleHidden={() => toggleAccountVisibility(acc)}
-                      onEdit={() => setEditAccount(acc)}
-                      onDelete={() => setDeleteAccount(acc)} />
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        )
-      }
+      {loading ? (
+        <Spinner />
+      ) : wealthAccounts.length === 0 ? (
+        <EmptyState
+          icon="🏦"
+          message="No accounts yet. Tap + to add your bank, savings, or assets."
+        />
+      ) : (
+        <>
+          {activeTab === "hot" && (
+            <>
+              {nonDebts.length > 0 && (
+                <>
+                  <SectionLabel>Accounts &amp; Assets</SectionLabel>
+                  <div className="space-y-2">
+                    {nonDebts.map((acc) => (
+                      <WealthCard
+                        key={acc._id}
+                        account={acc}
+                        onToggleHidden={() => toggleAccountVisibility(acc)}
+                        onEdit={() => setEditAccount(acc)}
+                        onDelete={() => setDeleteAccount(acc)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+              {debts.length > 0 && (
+                <>
+                  <SectionLabel>Debts &amp; Liabilities</SectionLabel>
+                  <div className="space-y-2">
+                    {debts.map((acc) => (
+                      <WealthCard
+                        key={acc._id}
+                        account={acc}
+                        onToggleHidden={() => toggleAccountVisibility(acc)}
+                        onEdit={() => setEditAccount(acc)}
+                        onDelete={() => setDeleteAccount(acc)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+          {activeTab === "cold" && (
+            <>
+              {archivedAccounts.length > 0 && (
+                <>
+                  <SectionLabel>Cold Storage</SectionLabel>
+                  <div className="space-y-2">
+                    {archivedAccounts.map((acc) => (
+                      <WealthCard
+                        key={acc._id}
+                        account={acc}
+                        onToggleHidden={() => toggleAccountVisibility(acc)}
+                        onEdit={() => setEditAccount(acc)}
+                        onDelete={() => setDeleteAccount(acc)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </>
+      )}
       <div className="h-6" />
 
       {/* Edit sheet */}
@@ -164,13 +274,15 @@ export default function WealthPage() {
       <ConfirmDialog
         open={!!deleteAccount}
         title="Remove account?"
-        message={deleteAccount
-          ? `"${deleteAccount.name}" (${formatBdt(deleteAccount.amount)}) will be permanently removed.`
-          : ''}
-        confirmLabel={deleting ? 'Removing…' : 'Remove'}
+        message={
+          deleteAccount
+            ? `"${deleteAccount.name}" (${formatBdt(deleteAccount.amount)}) will be permanently removed.`
+            : ""
+        }
+        confirmLabel={deleting ? "Removing…" : "Remove"}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteAccount(null)}
       />
     </div>
-  )
+  );
 }
