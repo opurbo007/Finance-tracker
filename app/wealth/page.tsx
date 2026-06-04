@@ -168,14 +168,18 @@ export default function WealthPage() {
             color: activeTab === "hot" ? "white" : "inherit",
           }}
         >
-          Hot (Unhidden)
+          Hot 
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("cold")}
-          className={`px-4 py-2 rounded ${activeTab === "cold" ? "bg-var(--rose) text-white" : "bg-gray-200"}`}
+          className="px-4 py-2 rounded"
+          style={{
+            background: activeTab === "cold" ? "var(--rose)" : "var(--gray-200)",
+            color: activeTab === "cold" ? "white" : "inherit",
+          }}
         >
-          Cold (Hidden)
+          Cold
         </button>
       </div>
 
