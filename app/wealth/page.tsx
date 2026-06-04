@@ -24,7 +24,7 @@ export default function WealthPage() {
   );
   const [showTransfer, setShowTransfer] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"hot" | "cold">("hot");
+  const [activeTab, setActiveTab] = useState<"active" | "cold">("active");
 
   const { assets, liabilities, netWorth } = useMemo(() => {
     const visibleAccounts = wealthAccounts.filter((w) => !w.isHidden);
@@ -160,22 +160,24 @@ export default function WealthPage() {
       <div className="flex space-x-2 mb-4">
         <button
           type="button"
-          onClick={() => setActiveTab("hot")}
+          onClick={() => setActiveTab("active")}
           className="px-4 py-2 rounded"
           style={{
-            background:
-              activeTab === "hot" ? "var(--emerald)" : "var(--gray-200)",
-            color: activeTab === "hot" ? "white" : "inherit",
+            background: activeTab === "active" ? "rgba(0,255,0,0.2)" : "rgba(255,255,255,0.1)",
+            color: activeTab === "active" ? "white" : "inherit",
+            backdropFilter: "blur(8px)",
+            border: activeTab === "active" ? "1px solid rgba(0,255,0,0.4)" : "1px solid rgba(255,255,255,0.2)",
           }}
         >
-          Hot 
+          Active
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("cold")}
           className="px-4 py-2 rounded"
           style={{
-            background: activeTab === "cold" ? "var(--rose)" : "var(--gray-200)",
+            background:
+              activeTab === "cold" ? "var(--rose)" : "var(--gray-200)",
             color: activeTab === "cold" ? "white" : "inherit",
           }}
         >
@@ -202,7 +204,7 @@ export default function WealthPage() {
         />
       ) : (
         <>
-          {activeTab === "hot" && (
+          {activeTab === "active" && (
             <>
               {nonDebts.length > 0 && (
                 <>
