@@ -161,12 +161,12 @@ export default function WealthPage() {
         <button
           type="button"
           onClick={() => setActiveTab("active")}
-          className="px-4 py-2 rounded"
+          className="px-2 py-1 rounded-b-md"
           style={{
-            background: activeTab === "active" ? "rgba(0,255,0,0.2)" : "rgba(255,255,255,0.1)",
+            background: activeTab === "active" ? "#32B879" : "rgba(255,255,255,0.1)",
             color: activeTab === "active" ? "white" : "inherit",
             backdropFilter: "blur(8px)",
-            border: activeTab === "active" ? "1px solid rgba(0,255,0,0.4)" : "1px solid rgba(255,255,255,0.2)",
+            border: activeTab === "active" ? "1px solid #32B879" : "1px solid rgba(255,255,255,0.2)",
           }}
         >
           Active
