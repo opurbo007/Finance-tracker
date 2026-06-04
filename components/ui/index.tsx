@@ -320,17 +320,19 @@ function ActionBtn({
   onClick,
   color,
   label,
+  className,
 }: {
   icon: ReactNode;
   onClick: () => void;
   color: string;
   label: string;
+  className?: string;
 }) {
   return (
     <button
       onClick={onClick}
       aria-label={label}
-      className="icon-button w-7 h-7"
+      className={cn("icon-button w-7 h-7", className)}
       style={{
         color: "var(--text-3)",
         transition: "color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease",
@@ -370,6 +372,10 @@ export function WealthCard({
   onDelete: () => void;
   onToggleHidden?: () => void;
 }) {
+  const amountText = account.isHidden
+    ? "****"
+    : `${account.isDebt ? "-" : ""}${formatBdt(account.amount)}`;
+
   return (
     <div className={cn("wealth-row group", account.isHidden && "opacity-60")}>
       <div
@@ -390,25 +396,25 @@ export function WealthCard({
           {account.isHidden ? "Hidden" : account.badgeLabel}
         </span>
       </div>
-      <div className="flex items-center gap-1 flex-shrink-0">
+      <div className="flex flex-col items-end gap-2 flex-shrink-0">
         <span
           className="text-sm font-semibold font-display"
           style={{ color: account.isDebt ? "var(--rose)" : "var(--emerald)" }}
         >
-          {account.isDebt ? "−" : ""}
-          {formatBdt(account.amount)}
+          {amountText}
         </span>
-        <div className="flex flex-col gap-0.5 ml-1 opacity-100 transition-opacity">
+        <div className="flex items-center gap-2 opacity-100 transition-opacity">
           {onToggleHidden && (
             <ActionBtn
-              icon={account.isHidden ? <Eye size={11} /> : <EyeOff size={11} />}
+              icon={account.isHidden ? <Eye size={14} /> : <EyeOff size={14} />}
               onClick={onToggleHidden}
               color="var(--amber)"
               label={account.isHidden ? "Show in total" : "Hide from total"}
+              className="w-10 h-10"
             />
           )}
-          <ActionBtn icon={<Pencil size={11} />} onClick={onEdit} color="var(--accent)" label="Edit" />
-          <ActionBtn icon={<Trash2 size={11} />} onClick={onDelete} color="var(--rose)" label="Delete" />
+          <ActionBtn icon={<Pencil size={14} />} onClick={onEdit} color="var(--accent)" label="Edit" className="w-10 h-10" />
+          <ActionBtn icon={<Trash2 size={14} />} onClick={onDelete} color="var(--rose)" label="Delete" className="w-10 h-10" />
         </div>
       </div>
     </div>
@@ -505,3 +511,4 @@ export function DateDivider({ date, net }: { date: string; net: number }) {
     </div>
   );
 }
+
