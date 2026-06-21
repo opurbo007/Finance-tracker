@@ -90,8 +90,10 @@ export async function PATCH(req: Request): Promise<NextResponse> {
       if (from.isDebt || to.isDebt || from.isHidden || to.isHidden) {
         throw new Error("Transfers are only available between visible asset accounts");
       }
-      if (from.amount < amount) {
-        throw new Error(`Transfer amount exceeds the source balance (available: ${from.amount})`);
+      // Ensure amount is treated as a number
+    const transferAmt = Number(amount);
+    if (from.amount < transferAmt) {
+        throw new Error(`Transfer amount (${amount}) exceeds the source balance (available: ${from.amount})`);
       }
 
       const deducted = await (WealthAccountModel as any).findOneAndUpdate(
@@ -101,7 +103,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
       );
 
       if (!deducted) {
-        throw new Error(`Transfer amount exceeds the source balance (available: ${from.amount})`);
+        throw new Error(`Transfer amount (${amount}) exceeds the source balance (available: ${from.amount})`);
       }
 
       const credited = await (WealthAccountModel as any).findOneAndUpdate(
