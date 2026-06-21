@@ -99,55 +99,62 @@ export async function PATCH(req: Request): Promise<NextResponse> {
       if (!from || !to) {
         throw new Error("Account not found");
       }
-      if (from.isDebt || to.isDebt || from.isHidden || to.isHidden) {
+
+      // Note: from.isHidden / to.isHidden may be `undefined` on legacy
+      // documents (field doesn't exist). Treat undefined as "not hidden",
+      // matching the same semantics used in the DB queries below ($ne: true).
+      if (
+        from.isDebt ||
+        to.isDebt ||
+        from.isHidden === true ||
+        to.isHidden === true
+      ) {
         throw new Error(
           "Transfers are only available between visible asset accounts",
         );
       }
-      // Ensure amount is treated as a number
+
       const transferAmt = Number(amount);
+
       if (from.amount < transferAmt) {
         throw new Error(
           `Transfer amount (${amount}) exceeds the source balance (available: ${from.amount})`,
         );
       }
 
+      // Atomically deduct from source, guarded by amount >= transferAmt at
+      // the DB level. isHidden uses { $ne: true } instead of { isHidden: false }
+      // because legacy documents may not have the isHidden field at all —
+      // { isHidden: false } only matches docs where the field exists AND is
+      // false, silently excluding documents missing the field entirely.
       const deducted = await (WealthAccountModel as any).findOneAndUpdate(
-        { _id: fromId, userId, isDebt: false, isHidden: false },
-        [
-          {
-            $set: {
-              amount: {
-                $cond: [
-                  { $gte: ["$amount", transferAmt] },
-                  { $subtract: ["$amount", transferAmt] },
-                  "$amount",
-                ],
-              },
-            },
-          },
-        ],
+        {
+          _id: fromId,
+          userId,
+          isDebt: false,
+          isHidden: { $ne: true },
+          amount: { $gte: transferAmt },
+        },
+        { $inc: { amount: -transferAmt } },
         { new: true },
       );
 
-      if (!deducted || deducted.amount === from.amount) {
+      if (!deducted) {
         throw new Error(
           `Transfer amount (${amount}) exceeds the source balance (available: ${from.amount})`,
         );
       }
 
-      console.log("typeof from.amount:", typeof from.amount, from.amount);
-      console.log("transferAmt:", transferAmt, typeof transferAmt);
-
       const credited = await (WealthAccountModel as any).findOneAndUpdate(
-        { _id: toId, userId, isDebt: false, isHidden: false },
+        { _id: toId, userId, isDebt: false, isHidden: { $ne: true } },
         { $inc: { amount: transferAmt } },
         { new: true },
       );
 
       if (!credited) {
+        // Roll back the deduction since the credit step failed
         await (WealthAccountModel as any).findOneAndUpdate(
-          { _id: fromId, userId, isDebt: false, isHidden: false },
+          { _id: fromId, userId },
           { $inc: { amount: transferAmt } },
         );
         throw new Error("Destination account not found");
