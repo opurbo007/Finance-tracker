@@ -108,14 +108,14 @@ export async function PATCH(req: Request): Promise<NextResponse> {
 
       const credited = await (WealthAccountModel as any).findOneAndUpdate(
         { _id: toId, userId, isDebt: false, isHidden: false },
-        { $inc: { amount } },
+        { $inc: { amount: transferAmt } },
         { new: true },
       );
 
       if (!credited) {
         await (WealthAccountModel as any).findOneAndUpdate(
           { _id: fromId, userId, isDebt: false, isHidden: false },
-          { $inc: { amount } },
+          { $inc: { amount: transferAmt } },
         );
         throw new Error("Destination account not found");
       }
