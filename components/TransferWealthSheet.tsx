@@ -152,7 +152,7 @@ export function TransferWealthSheet({ open, onClose }: Props) {
                 <div className="text-right">
                   <p style={{ color: 'var(--text-3)' }}>After transfer</p>
                   <p className="font-semibold font-display" style={{ color: 'var(--accent-strong)' }}>
-                    {fromAccount && Number.isFinite(parsedAmount) ? formatBdt(Math.max(fromAccount.amount - parsedAmount, 0)) : formatBdt(fromAccount?.amount ?? 0)}
+                    {fromAccount && Number.isFinite(parsedAmount) ? formatBdt(fromAccount.amount - parsedAmount) : formatBdt(fromAccount?.amount ?? 0)}
                   </p>
                 </div>
               </div>
