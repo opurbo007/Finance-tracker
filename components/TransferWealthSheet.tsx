@@ -74,9 +74,12 @@ export function TransferWealthSheet({ open, onClose }: Props) {
   }
 
   function swapAccounts() {
-    setFromId(toId)
-    setToId(fromId)
-    setError('')
+    // Properly swap the selected account IDs without causing both states to become identical.
+    // Using a temporary variable ensures the update reflects the intended exchange.
+    const temp = fromId;
+    setFromId(toId);
+    setToId(temp);
+    setError('');
   }
 
   return (
