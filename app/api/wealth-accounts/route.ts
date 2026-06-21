@@ -98,7 +98,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
 
       const deducted = await (WealthAccountModel as any).findOneAndUpdate(
         { _id: fromId, userId, isDebt: false, isHidden: false, amount: { $gte: transferAmt } },
-        { $inc: { amount: -amount } },
+        { $inc: { amount: -transferAmt } },
         { new: true },
       );
 
