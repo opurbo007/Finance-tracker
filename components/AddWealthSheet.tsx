@@ -132,7 +132,7 @@ export function AddWealthSheet({ open, onClose, editAccount }: Props) {
           </label>
           <input id="w-notes" type="text" placeholder="Account number, maturity date, etc."
             value={notes} onChange={e => setNotes(e.target.value)} className="input-field" />
-        </div>
+      </div>
       </div>
 
       <button type="button" onClick={handleSave} disabled={saving || !amount || !name}

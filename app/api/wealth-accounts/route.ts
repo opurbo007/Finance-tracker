@@ -23,6 +23,9 @@ function toWealthAccount(d: unknown): WealthAccount {
     isDebt: doc["isDebt"] as boolean,
     isHidden: (doc["isHidden"] as boolean) ?? false,
     notes: (doc["notes"] as string) ?? "",
+    // New due fields
+    isDue: doc["isDue"] as boolean ?? false,
+    dueAmount: doc["dueAmount"] as number ?? null,
     createdAt: doc["createdAt"] as number,
   };
 }

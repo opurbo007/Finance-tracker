@@ -30,6 +30,10 @@ export interface Transaction {
 }
 
 export interface WealthAccount {
+  /** Indicates money expected to be received (due) */
+  isDue?: boolean;
+  /** Expected amount due */
+  dueAmount?: number;
   _id: string
   userId: string
   name: string

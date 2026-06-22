@@ -29,6 +29,9 @@ const WealthAccountSchema = new Schema({
   isDebt: { type: Boolean, default: false },
   isHidden: { type: Boolean, default: false },
   notes: { type: String, default: '' },
+  // New fields for due payments
+  isDue: { type: Boolean, default: false },
+  dueAmount: { type: Number, default: null },
   createdAt: { type: Number, default: () => Date.now() },
 })
 

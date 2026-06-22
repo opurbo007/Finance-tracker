@@ -24,25 +24,31 @@ export default function WealthPage() {
   );
   const [showTransfer, setShowTransfer] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"active" | "cold">("active");
+  const [activeTab, setActiveTab] = useState<"active" | "cold" | "due">(
+    "active",
+  );
 
-  const { assets, liabilities, netWorth } = useMemo(() => {
-    const visibleAccounts = wealthAccounts.filter((w) => !w.isHidden);
-    const a = visibleAccounts
+  const { assets, liabilities, netWorth, dueTotal } = useMemo(() => {
+    // Exclude due accounts from net worth calculations
+    const active = wealthAccounts.filter((w) => !w.isHidden && !w.isDue);
+    const a = active
       .filter((w) => !w.isDebt)
       .reduce((s, w) => s + w.amount, 0);
-    const l = visibleAccounts
+    const l = active
       .filter((w) => w.isDebt)
       .reduce((s, w) => s + w.amount, 0);
-    return { assets: a, liabilities: l, netWorth: a - l };
+    return { assets: a, liabilities: l, netWorth: a - l, dueTotal: wealthAccounts.filter((w) => !w.isHidden && w.isDue && w.dueAmount != null).reduce((s, w) => s + (w.dueAmount as number), 0) };
   }, [wealthAccounts]);
 
   const visibleAccounts = wealthAccounts.filter((w) => !w.isHidden);
+  const activeAccounts = visibleAccounts.filter((w) => !w.isDue);
   const archivedAccounts = wealthAccounts.filter((w) => w.isHidden);
-  const nonDebts = visibleAccounts.filter((w) => !w.isDebt);
-  const debts = visibleAccounts.filter((w) => w.isDebt);
+  const nonDebts = activeAccounts.filter((w) => !w.isDebt);
+  const debts = activeAccounts.filter((w) => w.isDebt);
   const total = assets + liabilities;
   const assetPct = total > 0 ? (assets / total) * 100 : 50;
+  // Use activeAccounts for total count display
+
 
   async function handleConfirmDelete() {
     if (!deleteAccount) return;
@@ -83,10 +89,10 @@ export default function WealthPage() {
         </p>
         <p
           className="text-4xl font-bold font-display mb-4 relative z-10"
-          style={{ color: netWorth < 0 ? "var(--rose)" : "var(--text)" }}
+          style={{ color: (activeTab === "due" ? (dueTotal < 0 ? "var(--rose)" : "var(--text)") : netWorth < 0 ? "var(--rose)" : "var(--text)" ) }}
         >
-          {netWorth < 0 ? "-" : ""}
-          {formatBdt(Math.abs(netWorth))}
+          {(activeTab === "due" ? dueTotal : netWorth) < 0 ? "-" : ""}
+          {formatBdt(Math.abs(activeTab === "due" ? dueTotal : netWorth))}
         </p>
 
         {total > 0 && (
@@ -163,10 +169,14 @@ export default function WealthPage() {
           onClick={() => setActiveTab("active")}
           className="px-2 py-1 rounded-b-md"
           style={{
-            background: activeTab === "active" ? "#32B879" : "rgba(255,255,255,0.1)",
+            background:
+              activeTab === "active" ? "#32B879" : "rgba(255,255,255,0.1)",
             color: activeTab === "active" ? "white" : "inherit",
             backdropFilter: "blur(8px)",
-            border: activeTab === "active" ? "1px solid #32B879" : "1px solid rgba(255,255,255,0.2)",
+            border:
+              activeTab === "active"
+                ? "1px solid #32B879"
+                : "1px solid rgba(255,255,255,0.2)",
           }}
         >
           Active
@@ -182,6 +192,17 @@ export default function WealthPage() {
           }}
         >
           Cold
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("due")}
+          className="px-4 py-2 rounded"
+          style={{
+            background: activeTab === "due" ? "#D4AF37" : "var(--gray-200)",
+            color: activeTab === "due" ? "white" : "inherit",
+          }}
+        >
+          Due
         </button>
       </div>
 
@@ -255,6 +276,28 @@ export default function WealthPage() {
                         onDelete={() => setDeleteAccount(acc)}
                       />
                     ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+          {activeTab === "due" && (
+            <>
+              {visibleAccounts.filter((acc) => acc.isDue).length > 0 && (
+                <>
+                  <SectionLabel>Due Payments</SectionLabel>
+                  <div className="space-y-2">
+                    {visibleAccounts
+                      .filter((acc) => acc.isDue)
+                      .map((acc) => (
+                        <WealthCard
+                          key={acc._id}
+                          account={acc}
+                          onToggleHidden={() => toggleAccountVisibility(acc)}
+                          onEdit={() => setEditAccount(acc)}
+                          onDelete={() => setDeleteAccount(acc)}
+                        />
+                      ))}
                   </div>
                 </>
               )}
