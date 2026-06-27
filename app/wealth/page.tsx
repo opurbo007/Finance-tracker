@@ -36,8 +36,8 @@ export default function WealthPage() {
       liabilities: l,
       netWorth: a - l,
       dueTotal: wealthAccounts
-        .filter((w) => !w.isHidden && w.isDue && w.dueAmount != null)
-        .reduce((s, w) => s + (w.dueAmount as number), 0),
+        .filter((w) => !w.isHidden && w.isDue)
+        .reduce((s, w) => s + w.amount, 0),
     };
   }, [wealthAccounts]);
 
