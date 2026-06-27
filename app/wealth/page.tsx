@@ -24,20 +24,21 @@ export default function WealthPage() {
   );
   const [showTransfer, setShowTransfer] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"active" | "cold" | "due">(
-    "due",
-  );
+  const [activeTab, setActiveTab] = useState<"active" | "cold" | "due">("due");
 
   const { assets, liabilities, netWorth, dueTotal } = useMemo(() => {
     // Exclude due accounts from net worth calculations
     const active = wealthAccounts.filter((w) => !w.isHidden && !w.isDue);
-    const a = active
-      .filter((w) => !w.isDebt)
-      .reduce((s, w) => s + w.amount, 0);
-    const l = active
-      .filter((w) => w.isDebt)
-      .reduce((s, w) => s + w.amount, 0);
-    return { assets: a, liabilities: l, netWorth: a - l, dueTotal: wealthAccounts.filter((w) => !w.isHidden && w.isDue && w.dueAmount != null).reduce((s, w) => s + (w.dueAmount as number), 0) };
+    const a = active.filter((w) => !w.isDebt).reduce((s, w) => s + w.amount, 0);
+    const l = active.filter((w) => w.isDebt).reduce((s, w) => s + w.amount, 0);
+    return {
+      assets: a,
+      liabilities: l,
+      netWorth: a - l,
+      dueTotal: wealthAccounts
+        .filter((w) => !w.isHidden && w.isDue && w.dueAmount != null)
+        .reduce((s, w) => s + (w.dueAmount as number), 0),
+    };
   }, [wealthAccounts]);
 
   const visibleAccounts = wealthAccounts.filter((w) => !w.isHidden);
@@ -48,7 +49,6 @@ export default function WealthPage() {
   const total = assets + liabilities;
   const assetPct = total > 0 ? (assets / total) * 100 : 50;
   // Use activeAccounts for total count display
-
 
   async function handleConfirmDelete() {
     if (!deleteAccount) return;
@@ -89,7 +89,16 @@ export default function WealthPage() {
         </p>
         <p
           className="text-4xl font-bold font-display mb-4 relative z-10"
-          style={{ color: (activeTab === "due" ? (dueTotal < 0 ? "var(--rose)" : "var(--text)") : netWorth < 0 ? "var(--rose)" : "var(--text)" ) }}
+          style={{
+            color:
+              activeTab === "due"
+                ? dueTotal < 0
+                  ? "var(--rose)"
+                  : "var(--text)"
+                : netWorth < 0
+                  ? "var(--rose)"
+                  : "var(--text)",
+          }}
         >
           {(activeTab === "due" ? dueTotal : netWorth) < 0 ? "-" : ""}
           {formatBdt(Math.abs(activeTab === "due" ? dueTotal : netWorth))}
