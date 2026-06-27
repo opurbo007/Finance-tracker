@@ -25,7 +25,7 @@ export default function WealthPage() {
   const [showTransfer, setShowTransfer] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<"active" | "cold" | "due">(
-    "active",
+    "due",
   );
 
   const { assets, liabilities, netWorth, dueTotal } = useMemo(() => {
