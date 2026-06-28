@@ -24,6 +24,9 @@ function toTransaction(d: unknown): Transaction {
     borrowDirection: (doc["borrowDirection"] as Transaction["borrowDirection"]) ?? undefined,
     linkedWealthId: (doc["linkedWealthId"] as string | null) ?? undefined,
     wealthEffect: (doc["wealthEffect"] as Transaction["wealthEffect"]) ?? "none",
+    cleared: (doc["cleared"] as boolean) ?? false,
+    clearedDate: (doc["clearedDate"] as string) ?? undefined,
+    clearedNote: (doc["clearedNote"] as string) ?? undefined,
   };
 }
 

@@ -27,6 +27,12 @@ export interface Transaction {
    *  'none'   - no automatic wealth adjustment
    */
   wealthEffect?: 'add' | 'deduct' | 'none'
+  /** Whether this borrow has been cleared/settled */
+  cleared?: boolean
+  /** Date the borrow was cleared */
+  clearedDate?: string
+  /** Note about the clearance */
+  clearedNote?: string
 }
 
 export interface WealthAccount {

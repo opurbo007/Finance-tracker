@@ -13,6 +13,9 @@ const TransactionSchema = new Schema({
   borrowDirection: { type: String, enum: ['lent', 'borrowed'], default: null },
   linkedWealthId: { type: String, default: null },
   wealthEffect: { type: String, enum: ['add', 'deduct', 'none'], default: 'none' },
+  cleared: { type: Boolean, default: false },
+  clearedDate: { type: String, default: null },
+  clearedNote: { type: String, default: null },
 })
 
 TransactionSchema.index({ userId: 1, date: -1 })
