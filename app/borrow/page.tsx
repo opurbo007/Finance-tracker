@@ -181,21 +181,8 @@ export default function BorrowPage() {
                         tx={tx}
                         onEdit={() => setEditTx(tx)}
                         onDelete={() => setDeleteTx(tx)}
+                        onClear={activeTab === 'active' ? () => { setClearTx(tx); setClearNote('') } : undefined}
                       />
-                      {activeTab === 'active' && tx.borrowDirection && (
-                        <button
-                          type="button"
-                          onClick={() => { setClearTx(tx); setClearNote('') }}
-                          className="absolute bottom-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-md transition-all"
-                          style={{
-                            background: 'rgba(16,185,129,0.12)',
-                            color: 'var(--emerald)',
-                            border: '1px solid rgba(16,185,129,0.2)',
-                          }}
-                        >
-                          Clear
-                        </button>
-                      )}
                       {activeTab === 'history' && tx.clearedDate && (
                         <div
                           className="absolute bottom-2 right-2 text-[10px]"

@@ -1,6 +1,6 @@
 "use client";
 import { type ReactNode, useEffect } from "react";
-import { X, Trash2, Pencil, Eye, EyeOff } from "lucide-react";
+import { X, Trash2, Pencil, Check, Eye, EyeOff } from "lucide-react";
 import { cn, formatBdt, formatDate, transactionSignedAmount } from "@/lib/utils";
 import { CAT_COLORS, type Transaction, type WealthAccount } from "@/types";
 
@@ -243,10 +243,12 @@ export function TransactionItem({
   tx,
   onEdit,
   onDelete,
+  onClear,
 }: {
   tx: Transaction;
   onEdit: () => void;
   onDelete: () => void;
+  onClear?: () => void;
 }) {
   const catColor = CAT_COLORS[tx.category] ?? "#888780";
   const signedAmount = transactionSignedAmount(tx);
@@ -307,6 +309,9 @@ export function TransactionItem({
           </span>
         </div>
         <div className="flex flex-col gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onClear && (
+            <ActionBtn icon={<Check size={11} />} onClick={onClear} color="var(--emerald)" label="Clear" />
+          )}
           <ActionBtn icon={<Pencil size={11} />} onClick={onEdit} color="var(--accent)" label="Edit" />
           <ActionBtn icon={<Trash2 size={11} />} onClick={onDelete} color="var(--rose)" label="Delete" />
         </div>
