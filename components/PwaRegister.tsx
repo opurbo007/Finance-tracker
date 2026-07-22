@@ -23,6 +23,8 @@ export function PwaRegister() {
 
   // ONLY capture install prompt
   useEffect(() => {
+    if (sessionStorage.getItem("pwa-install-dismissed")) return;
+
     const handler = (e: Event) => {
       const event = e as BeforeInstallPromptEvent;
       event.preventDefault();
@@ -56,6 +58,7 @@ export function PwaRegister() {
     const result = await prompt.userChoice;
 
     if (result.outcome === "accepted") {
+      sessionStorage.setItem("pwa-install-dismissed", "1");
       setShowBanner(false);
       promptRef.current = null;
     }
@@ -84,7 +87,7 @@ export function PwaRegister() {
 
       <button onClick={installApp}>Install</button>
 
-      <button onClick={() => setShowBanner(false)}>✕</button>
+      <button onClick={() => { sessionStorage.setItem("pwa-install-dismissed", "1"); setShowBanner(false); }}>✕</button>
     </div>
   );
 }
