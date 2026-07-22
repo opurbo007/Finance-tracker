@@ -26,6 +26,8 @@ export function PwaRegister() {
     if (sessionStorage.getItem("pwa-install-dismissed")) return;
 
     const handler = (e: Event) => {
+      if (sessionStorage.getItem("pwa-install-dismissed")) return;
+
       const event = e as BeforeInstallPromptEvent;
       event.preventDefault();
 
@@ -59,9 +61,9 @@ export function PwaRegister() {
 
     if (result.outcome === "accepted") {
       sessionStorage.setItem("pwa-install-dismissed", "1");
-      setShowBanner(false);
-      promptRef.current = null;
     }
+    setShowBanner(false);
+    promptRef.current = null;
   }
 
   if (!showBanner) return null;
